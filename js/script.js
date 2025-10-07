@@ -2,10 +2,46 @@
 let animeList = [];
 let searchTimeout = null;
 
+// Background images rotation
+const backgroundImages = [
+    'image1.jpg', // Replace with your actual image paths
+    'image2.jpg',
+    'image3.jpg'
+];
+
 // Initialize the app
 document.addEventListener('DOMContentLoaded', function () {
+    setRotatingBackground();
     initializeApp();
 });
+
+function setRotatingBackground() {
+    // Get current rotation index from memory (resets on page refresh)
+    let currentIndex = sessionStorage.getItem('bgIndex');
+
+    if (currentIndex === null) {
+        currentIndex = 0;
+    } else {
+        currentIndex = parseInt(currentIndex);
+    }
+
+    // Set the background image
+    const imageUrl = backgroundImages[currentIndex];
+    document.body.style.setProperty('--bg-image', `url('${imageUrl}')`);
+
+    // Update the CSS with the background image
+    const style = document.createElement('style');
+    style.innerHTML = `
+        body::before {
+            background-image: url('${imageUrl}');
+        }
+    `;
+    document.head.appendChild(style);
+
+    // Increment and save for next page load
+    const nextIndex = (currentIndex + 1) % backgroundImages.length;
+    sessionStorage.setItem('bgIndex', nextIndex);
+}
 
 function initializeApp() {
     setupNavigation();
