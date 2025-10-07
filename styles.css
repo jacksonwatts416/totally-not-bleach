@@ -73,11 +73,28 @@ nav {
     border-radius: 8px;
     transition: all 0.3s ease;
     font-size: 1.1rem;
+    position: relative;
+}
+
+.nav-links a::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #00d4ff, transparent);
+    box-shadow: 0 0 10px #00d4ff, 0 0 20px #00d4ff;
+    transition: width 0.3s ease;
+}
+
+.nav-links a:hover::after {
+    width: 100%;
 }
 
 .nav-links a:hover {
-    background: rgba(0, 153, 255, 0.2);
-    transform: translateY(-2px);
+    color: #00d4ff;
 }
 
 /* Mobile menu button */
