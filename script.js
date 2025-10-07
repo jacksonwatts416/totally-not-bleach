@@ -3,6 +3,7 @@ let animeList = [];
 let searchTimeout = null;
 
 // Background images rotation
+// Add more images here - they'll automatically be included in the rotation
 const backgroundImages = [
     'images/image1.jpg',
     'images/image2.jpg',
@@ -11,23 +12,14 @@ const backgroundImages = [
 
 // Initialize the app
 document.addEventListener('DOMContentLoaded', function () {
-    setRotatingBackground();
+    setRandomBackground();
     initializeApp();
 });
 
-function setRotatingBackground() {
-    // Get current rotation index from memory (resets on page refresh)
-    let currentIndex = sessionStorage.getItem('bgIndex');
-
-    if (currentIndex === null) {
-        currentIndex = 0;
-    } else {
-        currentIndex = parseInt(currentIndex);
-    }
-
-    // Set the background image
-    const imageUrl = backgroundImages[currentIndex];
-    document.body.style.setProperty('--bg-image', `url('${imageUrl}')`);
+function setRandomBackground() {
+    // Always pick a random image on page load
+    const randomIndex = Math.floor(Math.random() * backgroundImages.length);
+    const imageUrl = backgroundImages[randomIndex];
 
     // Update the CSS with the background image
     const style = document.createElement('style');
@@ -38,9 +30,7 @@ function setRotatingBackground() {
     `;
     document.head.appendChild(style);
 
-    // Increment and save for next page load
-    const nextIndex = (currentIndex + 1) % backgroundImages.length;
-    sessionStorage.setItem('bgIndex', nextIndex);
+    console.log(`Random background set to: ${imageUrl} (index: ${randomIndex})`);
 }
 
 function initializeApp() {
