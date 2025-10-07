@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anime Hub</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <nav>
+        <div class="nav-container">
+            <div class="logo">AnimeHub</div>
+            <ul class="nav-links">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#anime-list">Anime List</a></li>
+                <li><a href="#search">Search</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="hero">
+        <h1>Welcome to Your Anime Collection</h1>
+        <p class="subtitle">Track, discover, and enjoy your favorite anime</p>
+
+        <div class="search-container">
+            <input type="text" class="search-box" placeholder="Search for anime..." id="searchInput">
+        </div>
+
+        <div class="features">
+            <div class="feature-card">
+                <div class="feature-icon">📺</div>
+                <h3>Your List</h3>
+                <p>Keep track of what you're watching and what's next on your list</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔍</div>
+                <h3>Discover</h3>
+                <p>Find new anime to watch based on your preferences</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Anime List Section (hidden by default) -->
+    <div id="anime-list" class="page-section" style="display: none;">
+        <div class="container">
+            <h2>My Anime List</h2>
+            <div id="animeListContainer"></div>
+        </div>
+    </div>
+
+    <!-- Search Section (hidden by default) -->
+    <div id="search" class="page-section" style="display: none;">
+        <div class="container">
+            <h2>Search Anime</h2>
+            <div class="search-container">
+                <input type="text" class="search-box" placeholder="Search your collection..." id="searchInput2">
+            </div>
+            <div id="searchResults"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
