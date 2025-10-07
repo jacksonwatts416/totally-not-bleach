@@ -84,6 +84,17 @@ nav {
     transform: translateY(-2px);
 }
 
+/* Mobile menu button */
+.mobile-menu-btn {
+    display: none;
+    background: none;
+    border: none;
+    color: #e8eef7;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.5rem;
+}
+
 .hero {
     max-width: 1200px;
     margin: 0 auto;
@@ -98,6 +109,12 @@ h1 {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+}
+
+h2 {
+    color: #00d4ff;
+    margin-bottom: 2rem;
+    font-size: 2rem;
 }
 
 .subtitle {
@@ -172,16 +189,202 @@ h1 {
     line-height: 1.6;
 }
 
+/* Page sections */
+.page-section {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 4rem 2rem;
+}
+
+.container {
+    width: 100%;
+}
+
+/* Anime cards */
+#animeListContainer {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.anime-card {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 1.5rem;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+}
+
+.anime-card:hover {
+    transform: translateY(-5px);
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 10px 30px rgba(0, 153, 255, 0.2);
+}
+
+.anime-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+    gap: 1rem;
+}
+
+.anime-header h3 {
+    color: #e8eef7;
+    font-size: 1.2rem;
+    margin: 0;
+}
+
+.anime-genre {
+    color: #a0b4cc;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.status-badge.watching {
+    background: rgba(0, 153, 255, 0.2);
+    color: #00d4ff;
+}
+
+.status-badge.completed {
+    background: rgba(0, 255, 0, 0.2);
+    color: #00ff88;
+}
+
+.status-badge.plan-to-watch {
+    background: rgba(255, 255, 0, 0.2);
+    color: #ffdd00;
+}
+
+/* Star rating */
+.anime-rating {
+    margin-bottom: 1rem;
+}
+
+.star-container {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.star {
+    cursor: pointer;
+    font-size: 1.5rem;
+    color: #5a6b7d;
+    transition: all 0.2s ease;
+}
+
+.star.filled {
+    color: #ffdd00;
+}
+
+.star:hover {
+    transform: scale(1.2);
+    color: #ffdd00;
+}
+
+/* Anime actions */
+.anime-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.anime-actions button {
+    flex: 1;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+}
+
+.btn-edit {
+    background: rgba(0, 153, 255, 0.2);
+    color: #00d4ff;
+}
+
+.btn-edit:hover {
+    background: rgba(0, 153, 255, 0.3);
+    transform: translateY(-2px);
+}
+
+.btn-remove {
+    background: rgba(255, 0, 0, 0.2);
+    color: #ff6b6b;
+}
+
+.btn-remove:hover {
+    background: rgba(255, 0, 0, 0.3);
+    transform: translateY(-2px);
+}
+
+/* Loading and empty states */
+.loading {
+    text-align: center;
+    padding: 2rem;
+    color: #a0b4cc;
+    font-size: 1.1rem;
+}
+
+.empty-message {
+    text-align: center;
+    padding: 3rem;
+    color: #a0b4cc;
+    font-size: 1.1rem;
+}
+
+/* Mobile responsive */
 @media (max-width: 768px) {
     h1 {
         font-size: 2rem;
     }
 
+    .mobile-menu-btn {
+        display: block;
+    }
+
     .nav-links {
-        gap: 1rem;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: rgba(10, 14, 39, 0.98);
+        flex-direction: column;
+        gap: 0;
+        padding: 1rem 0;
+        display: none;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .nav-links.active {
+        display: flex;
+    }
+
+    .nav-links li {
+        width: 100%;
+    }
+
+    .nav-links a {
+        display: block;
+        padding: 1rem 2rem;
+        border-radius: 0;
     }
 
     .features {
+        grid-template-columns: 1fr;
+    }
+
+    #animeListContainer {
         grid-template-columns: 1fr;
     }
 }
