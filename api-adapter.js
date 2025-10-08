@@ -1,36 +1,32 @@
-// API Adapter - Translates different APIs to a common format
-// This is the magic that makes APIs plug-and-play!
+// Hybrid API Adapter - Uses Jikan for info + GogoAnime scraper for episodes
+// No self-hosting required!
 
 class AnimeAPIAdapter {
     constructor() {
-        this.config = window.apiConfig.config;
-        this.apiName = window.apiConfig.active;
+        this.jikanBase = 'https://api.jikan.moe/v4';
+        this.gogoBase = 'https://gogoanime.consumet.stream'; // Community-hosted instance
+        this.apiName = 'hybrid';
     }
 
     // Build URL with parameters
-    buildUrl(endpoint, params = {}) {
-        let url = this.config.baseUrl + endpoint;
-
-        // Replace URL parameters like {query} or {id}
+    buildUrl(base, endpoint, params = {}) {
+        let url = base + endpoint;
         Object.keys(params).forEach(key => {
             url = url.replace(`{${key}}`, encodeURIComponent(params[key]));
         });
-
         return url;
     }
 
-    // Search for anime
+    // Search for anime using Jikan
     async searchAnime(query) {
         try {
-            const url = this.buildUrl(this.config.endpoints.search, { query });
+            const url = this.buildUrl(this.jikanBase, '/anime?q={query}', { query });
             console.log('Search URL:', url);
 
             const response = await fetch(url);
             const data = await response.json();
-
             console.log('Search response:', data);
 
-            // Normalize data to common format
             return this.normalizeSearchResults(data);
         } catch (error) {
             console.error('Search error:', error);
@@ -38,10 +34,10 @@ class AnimeAPIAdapter {
         }
     }
 
-    // Get anime details
+    // Get anime details from Jikan
     async getAnimeInfo(id) {
         try {
-            const url = this.buildUrl(this.config.endpoints.info, { id });
+            const url = this.buildUrl(this.jikanBase, '/anime/{id}/full', { id });
             console.log('Info URL:', url);
 
             const response = await fetch(url);
@@ -54,23 +50,87 @@ class AnimeAPIAdapter {
             const data = await response.json();
             console.log('Raw API response:', data);
 
-            const normalized = this.normalizeAnimeInfo(data);
-            console.log('Normalized anime info:', normalized);
+            // Get anime info from Jikan
+            const animeInfo = this.normalizeAnimeInfo(data);
 
-            return normalized;
+            // Try to get episodes from GogoAnime
+            const episodes = await this.getEpisodesFromGogo(animeInfo.title);
+            animeInfo.episodes = episodes;
+
+            console.log('Final anime info with episodes:', animeInfo);
+            return animeInfo;
         } catch (error) {
             console.error('Info error:', error);
             return null;
         }
     }
 
-    // Get trending anime
-    async getTrending() {
+    // Get episodes from GogoAnime scraper
+    async getEpisodesFromGogo(animeTitle) {
         try {
-            const url = this.buildUrl(this.config.endpoints.trending);
+            // Search GogoAnime for the anime
+            const searchUrl = `${this.gogoBase}/search?q=${encodeURIComponent(animeTitle)}`;
+            console.log('Searching GogoAnime:', searchUrl);
+
+            const searchResponse = await fetch(searchUrl);
+            const searchData = await searchResponse.json();
+
+            if (!searchData || !searchData.results || searchData.results.length === 0) {
+                console.log('No results from GogoAnime');
+                return [];
+            }
+
+            // Get the first result's ID
+            const gogoId = searchData.results[0].id;
+            console.log('Found GogoAnime ID:', gogoId);
+
+            // Get episode list
+            const infoUrl = `${this.gogoBase}/info/${gogoId}`;
+            console.log('Getting episodes from:', infoUrl);
+
+            const infoResponse = await fetch(infoUrl);
+            const infoData = await infoResponse.json();
+
+            if (!infoData || !infoData.episodes) {
+                console.log('No episodes found');
+                return [];
+            }
+
+            console.log(`Found ${infoData.episodes.length} episodes`);
+            return infoData.episodes.map(ep => ({
+                id: ep.id,
+                number: ep.number,
+                title: `Episode ${ep.number}`,
+                url: ep.url
+            }));
+        } catch (error) {
+            console.error('Error getting episodes from GogoAnime:', error);
+            return [];
+        }
+    }
+
+    // Get streaming links for an episode
+    async getEpisodeStreaming(episodeId) {
+        try {
+            const url = `${this.gogoBase}/watch/${episodeId}`;
+            console.log('Getting streaming link:', url);
+
             const response = await fetch(url);
             const data = await response.json();
 
+            return data.sources || [];
+        } catch (error) {
+            console.error('Error getting streaming link:', error);
+            return [];
+        }
+    }
+
+    // Get trending anime
+    async getTrending() {
+        try {
+            const url = this.buildUrl(this.jikanBase, '/top/anime');
+            const response = await fetch(url);
+            const data = await response.json();
             return this.normalizeSearchResults(data);
         } catch (error) {
             console.error('Trending error:', error);
@@ -81,10 +141,9 @@ class AnimeAPIAdapter {
     // Get popular anime
     async getPopular() {
         try {
-            const url = this.buildUrl(this.config.endpoints.popular);
+            const url = this.buildUrl(this.jikanBase, '/top/anime?filter=bypopularity');
             const response = await fetch(url);
             const data = await response.json();
-
             return this.normalizeSearchResults(data);
         } catch (error) {
             console.error('Popular error:', error);
@@ -92,85 +151,43 @@ class AnimeAPIAdapter {
         }
     }
 
-    // Normalize search results to common format
+    // Normalize search results
     normalizeSearchResults(data) {
-        // Different APIs return data differently
-        // Consumet returns: { results: [...] }
-        // Jikan returns: { data: [...] }
-
-        let results = [];
-
-        if (this.apiName === 'consumet') {
-            results = data.results || [];
-            return results.map(anime => ({
-                id: anime.id,
-                title: anime.title,
-                image: anime.image,
-                releaseDate: anime.releaseDate,
-                subOrDub: anime.subOrDub,
-                genres: anime.genres || [],
-                rating: null
-            }));
-        }
-
-        if (this.apiName === 'jikan') {
-            results = data.data || [];
-            return results.map(anime => ({
-                id: anime.mal_id,
-                title: anime.title,
-                image: anime.images?.jpg?.image_url,
-                releaseDate: anime.year,
-                genres: anime.genres?.map(g => g.name) || [],
-                rating: anime.score
-            }));
-        }
-
-        return results;
+        const results = data.data || [];
+        return results.map(anime => ({
+            id: anime.mal_id,
+            title: anime.title,
+            image: anime.images?.jpg?.image_url,
+            releaseDate: anime.year,
+            genres: anime.genres?.map(g => g.name) || [],
+            rating: anime.score
+        }));
     }
 
-    // Normalize anime info to common format
+    // Normalize anime info
     normalizeAnimeInfo(data) {
-        if (this.apiName === 'consumet') {
-            return {
-                id: data.id,
-                title: data.title,
-                image: data.image,
-                description: data.description,
-                genres: data.genres || [],
-                releaseDate: data.releaseDate,
-                status: data.status,
-                totalEpisodes: data.totalEpisodes,
-                episodes: data.episodes || [],
-                rating: null,
-                subOrDub: data.subOrDub
-            };
-        }
+        const anime = data.data || data;
 
-        if (this.apiName === 'jikan') {
-            // Jikan wraps data in a 'data' object
-            const anime = data.data || data;
-
-            return {
-                id: anime.mal_id,
-                title: anime.title || anime.title_english || 'Unknown Title',
-                image: anime.images?.jpg?.large_image_url || anime.images?.jpg?.image_url,
-                description: anime.synopsis || 'No description available.',
-                genres: anime.genres?.map(g => g.name) || [],
-                releaseDate: anime.year || anime.aired?.from?.substring(0, 4) || 'Unknown',
-                status: anime.status || 'Unknown',
-                totalEpisodes: anime.episodes || 'Unknown',
-                episodes: [], // Jikan doesn't provide episode list in main endpoint
-                rating: anime.score || null,
-                subOrDub: anime.type || null
-            };
-        }
-
-        return data;
+        return {
+            id: anime.mal_id,
+            title: anime.title || anime.title_english || 'Unknown Title',
+            image: anime.images?.jpg?.large_image_url || anime.images?.jpg?.image_url,
+            description: anime.synopsis || 'No description available.',
+            genres: anime.genres?.map(g => g.name) || [],
+            releaseDate: anime.year || anime.aired?.from?.substring(0, 4) || 'Unknown',
+            status: anime.status || 'Unknown',
+            totalEpisodes: anime.episodes || 'Unknown',
+            episodes: [], // Will be filled by getEpisodesFromGogo
+            rating: anime.score || null,
+            subOrDub: anime.type || null,
+            studios: anime.studios?.map(s => s.name).join(', ') || 'Unknown',
+            duration: anime.duration || 'Unknown'
+        };
     }
 }
 
 // Create global instance
 if (typeof window !== 'undefined') {
     window.animeAPI = new AnimeAPIAdapter();
-    console.log(`✅ Anime API initialized: ${window.apiConfig.config.name}`);
+    console.log('✅ Hybrid Anime API initialized (Jikan + GogoAnime)');
 }
