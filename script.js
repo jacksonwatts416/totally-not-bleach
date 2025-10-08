@@ -286,7 +286,7 @@ function displayAnimeList(list) {
 
 function createAnimeCard(anime) {
     return `
-        <div class="anime-card" data-id="${anime.id}">
+        <div class="anime-card" data-id="${anime.id}" onclick="viewAnime('${anime.id}', '${escapeHtml(anime.title).replace(/'/g, "\\'")}')">
             ${anime.image ? `<img src="${anime.image}" alt="${escapeHtml(anime.title)}" style="width: 100%; border-radius: 12px; margin-bottom: 1rem;">` : ''}
             <div class="anime-header">
                 <h3>${escapeHtml(anime.title)}</h3>
@@ -295,10 +295,6 @@ function createAnimeCard(anime) {
             <p class="anime-genre">${escapeHtml(anime.genre)}</p>
             <div class="anime-rating">
                 ${generateInteractiveStars(anime.id, anime.rating)}
-            </div>
-            <div class="anime-actions">
-                <button class="btn-edit" onclick="editAnime(${anime.id})" aria-label="Edit ${escapeHtml(anime.title)}">Edit</button>
-                <button class="btn-remove" onclick="removeAnime(${anime.id})" aria-label="Remove ${escapeHtml(anime.title)}">Remove</button>
             </div>
         </div>
     `;
@@ -417,3 +413,89 @@ window.sortByRating = sortByRating;
 window.sortByTitle = sortByTitle;
 window.showAllAnime = showAllAnime;
 window.editAnime = editAnime;
+window.viewAnime = viewAnime;
+
+// NEW: View anime details and episodes
+async function viewAnime(animeId, animeTitle) {
+    console.log('Loading anime:', animeId);
+
+    // Navigate to watch page
+    navigateTo('watch');
+
+    // Show loading state
+    const watchContainer = document.getElementById('watchContainer');
+    if (watchContainer) {
+        watchContainer.innerHTML = '<div class="loading">Loading anime details...</div>';
+    }
+
+    try {
+        // Fetch anime details from API
+        const animeInfo = await window.animeAPI.getAnimeInfo(animeId);
+
+        if (!animeInfo) {
+            watchContainer.innerHTML = '<p class="empty-message">Failed to load anime details.</p>';
+            return;
+        }
+
+        // Display anime details and episodes
+        displayAnimeDetails(animeInfo);
+
+    } catch (error) {
+        console.error('Failed to load anime:', error);
+        if (watchContainer) {
+            watchContainer.innerHTML = '<p class="empty-message">Failed to load anime. Please try again!</p>';
+        }
+    }
+}
+
+// NEW: Display anime details page
+function displayAnimeDetails(anime) {
+    const container = document.getElementById('watchContainer');
+    if (!container) return;
+
+    const episodesList = anime.episodes && anime.episodes.length > 0
+        ? anime.episodes.map((ep, index) => `
+            <div class="episode-item" onclick="playEpisode('${ep.id}', ${index + 1})">
+                <div class="episode-number">Episode ${ep.number || index + 1}</div>
+                <div class="episode-title">${escapeHtml(ep.title || `Episode ${index + 1}`)}</div>
+            </div>
+          `).join('')
+        : '<p class="empty-message">No episodes available</p>';
+
+    container.innerHTML = `
+        <div class="anime-details">
+            <div class="anime-details-header">
+                ${anime.image ? `<img src="${anime.image}" alt="${escapeHtml(anime.title)}" class="anime-details-image">` : ''}
+                <div class="anime-details-info">
+                    <h2>${escapeHtml(anime.title)}</h2>
+                    <p class="anime-meta">
+                        <span>${anime.releaseDate || 'Unknown'}</span>
+                        ${anime.status ? `<span> • ${anime.status}</span>` : ''}
+                        ${anime.totalEpisodes ? `<span> • ${anime.totalEpisodes} Episodes</span>` : ''}
+                        ${anime.rating ? `<span> • ⭐ ${anime.rating}/10</span>` : ''}
+                    </p>
+                    <p class="anime-genres">
+                        ${anime.genres && anime.genres.length > 0
+            ? anime.genres.map(g => `<span class="genre-tag">${g}</span>`).join(' ')
+            : ''}
+                    </p>
+                    <p class="anime-description">${anime.description || 'No description available.'}</p>
+                </div>
+            </div>
+            
+            <div class="episodes-section">
+                <h3>Episodes</h3>
+                <div class="episodes-list">
+                    ${episodesList}
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// NEW: Play episode (placeholder for future video player)
+function playEpisode(episodeId, episodeNumber) {
+    console.log('Playing episode:', episodeId, episodeNumber);
+    alert(`Episode ${episodeNumber} player coming soon!`);
+    // TODO: Implement video player here
+}
