@@ -56,15 +56,11 @@ class AnimeAPIAdapter {
             // Get total episodes count for placeholder generation
             const totalEps = typeof animeInfo.totalEpisodes === 'number' ? animeInfo.totalEpisodes : 12;
 
-            // Try to get episodes from GogoAnime
+            // Try to get episodes from GogoAnime (no images)
             console.log('Attempting to fetch episodes from GogoAnime...');
             const episodes = await this.getEpisodesFromGogo(animeInfo.title, totalEps);
 
-            // Try to get episode images from Jikan
-            console.log('Fetching episode images from Jikan...');
-            const episodesWithImages = await this.getEpisodeImages(id, episodes);
-
-            animeInfo.episodes = episodesWithImages;
+            animeInfo.episodes = episodes;
 
             console.log('Final anime info with episodes:', animeInfo);
             console.log(`Total episodes in final object: ${animeInfo.episodes.length}`);
@@ -86,30 +82,41 @@ class AnimeAPIAdapter {
             const response = await fetch(episodeUrl);
 
             if (!response.ok) {
-                console.log('Could not fetch episode images, using episodes without images');
-                return episodes;
+                console.log('Could not fetch episode images, episodes will have no images');
+                return episodes.map(ep => ({ ...ep, image: null }));
             }
 
             const data = await response.json();
             const jikanEpisodes = data.data || [];
 
             console.log(`Found ${jikanEpisodes.length} episodes with metadata from Jikan`);
+            console.log('Sample Jikan episode data:', jikanEpisodes[0]);
+
+            // Check if any episodes have images
+            const episodesWithImages = jikanEpisodes.filter(ep => ep.images?.jpg?.image_url);
+            console.log(`${episodesWithImages.length} episodes have unique images`);
 
             // Merge episode images with our episode list
             return episodes.map(ep => {
                 const jikanEp = jikanEpisodes.find(je => je.mal_id === ep.number);
+
                 if (jikanEp) {
+                    const episodeImage = jikanEp.images?.jpg?.image_url || null;
+                    console.log(`Episode ${ep.number}: ${jikanEp.title || 'No title'}, Image: ${episodeImage ? 'Yes' : 'No'}`);
+
                     return {
                         ...ep,
                         title: jikanEp.title || ep.title,
-                        image: jikanEp.images?.jpg?.image_url || null
+                        image: episodeImage
                     };
                 }
-                return ep;
+
+                console.log(`Episode ${ep.number}: No Jikan data found`);
+                return { ...ep, image: null };
             });
         } catch (error) {
             console.error('Error fetching episode images:', error);
-            return episodes;
+            return episodes.map(ep => ({ ...ep, image: null }));
         }
     }
 
