@@ -426,11 +426,11 @@ h2 {
 }
 
 .anime-title-header {
-    font-size: 2.5rem;
-    margin-bottom: 1rem;
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
     margin-top: 0;
     color: #00d4ff;
-    padding-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
     border-bottom: 2px solid rgba(0, 153, 255, 0.3);
 }
 
@@ -486,15 +486,15 @@ h2 {
 
 .watch-episodes h3 {
     color: #00d4ff;
-    font-size: 1.5rem;
-    margin-bottom: 1rem;
+    font-size: 1.3rem;
+    margin-bottom: 0.75rem;
 }
 
 .episodes-container {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
-    max-height: calc(100vh - 150px);
+    max-height: calc(100vh - 100px);
     overflow-y: auto;
     padding-right: 0.5rem;
 }
