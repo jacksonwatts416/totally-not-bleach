@@ -219,6 +219,11 @@ h2 {
     padding: 4rem 2rem;
 }
 
+/* Search page positioned higher */
+#search.page-section {
+    padding-top: 2rem;
+}
+
 .container {
     width: 100%;
 }
