@@ -121,11 +121,9 @@ function navigateTo(page) {
     }
 }
 
-// UPDATED: Search functionality with API
+// Search functionality - only setup home search
 function setupSearch() {
     const searchInput = document.getElementById('searchInput');
-    const searchInput2 = document.getElementById('searchInput2');
-    const searchInputWatch = document.getElementById('searchInputWatch');
 
     if (searchInput) {
         searchInput.addEventListener('keypress', async function (e) {
@@ -133,51 +131,14 @@ function setupSearch() {
                 clearTimeout(searchTimeout);
                 const query = searchInput.value;
 
-                // Navigate to search page first
                 navigateTo('search');
-
-                // Copy query to search page input
-                if (searchInput2) {
-                    searchInput2.value = query;
-                }
-
-                // Then perform API search
-                await performAPISearch(query);
-            }
-        });
-    }
-
-    if (searchInput2) {
-        searchInput2.addEventListener('keypress', async function (e) {
-            if (e.key === 'Enter') {
-                clearTimeout(searchTimeout);
-                await performAPISearch(searchInput2.value);
-            }
-        });
-    }
-
-    if (searchInputWatch) {
-        searchInputWatch.addEventListener('keypress', async function (e) {
-            if (e.key === 'Enter') {
-                clearTimeout(searchTimeout);
-                const query = searchInputWatch.value;
-
-                // Navigate to search page
-                navigateTo('search');
-
-                // Copy query to search page input
-                if (searchInput2) {
-                    searchInput2.value = query;
-                }
-
-                // Perform search
                 await performAPISearch(query);
             }
         });
     }
 }
 
-// NEW: API Search function
+// API Search function
 async function performAPISearch(query) {
     console.log('Searching API for:', query);
 
@@ -222,7 +183,7 @@ async function performAPISearch(query) {
     }
 }
 
-// NEW: Display search results
+// Display search results with search bar
 function displaySearchResults(results) {
     const container = document.getElementById('searchResults');
     if (!container) return;
@@ -232,15 +193,31 @@ function displaySearchResults(results) {
         return;
     }
 
-    container.innerHTML = '<div id="searchResultsGrid"></div>';
+    container.innerHTML = `
+        <div class="search-container" style="margin-bottom: 2rem;">
+            <input type="text" class="search-box" placeholder="Search anime..." id="searchInput2">
+        </div>
+        <div id="searchResultsGrid"></div>
+    `;
+
     const grid = document.getElementById('searchResultsGrid');
     grid.style.display = 'grid';
     grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(280px, 1fr))';
     grid.style.gap = '2rem';
-    grid.style.marginTop = '2rem';
 
     grid.innerHTML = results.map(anime => createAnimeCard(anime)).join('');
     addTouchFeedback();
+
+    // Setup search for dynamically created search box
+    const searchInput2 = document.getElementById('searchInput2');
+    if (searchInput2) {
+        searchInput2.addEventListener('keypress', async function (e) {
+            if (e.key === 'Enter') {
+                clearTimeout(searchTimeout);
+                await performAPISearch(searchInput2.value);
+            }
+        });
+    }
 }
 
 // Anime list management
@@ -441,21 +418,18 @@ window.showAllAnime = showAllAnime;
 window.editAnime = editAnime;
 window.viewAnime = viewAnime;
 
-// NEW: View anime details and episodes
+// View anime details and episodes
 async function viewAnime(animeId, animeTitle) {
     console.log('Loading anime:', animeId);
 
-    // Navigate to watch page
     navigateTo('watch');
 
-    // Show loading state
     const watchContainer = document.getElementById('watchContainer');
     if (watchContainer) {
         watchContainer.innerHTML = '<div class="loading">Loading anime details...</div>';
     }
 
     try {
-        // Fetch anime details from API
         const animeInfo = await window.animeAPI.getAnimeInfo(animeId);
 
         if (!animeInfo) {
@@ -463,7 +437,6 @@ async function viewAnime(animeId, animeTitle) {
             return;
         }
 
-        // Display anime details and episodes
         displayAnimeDetails(animeInfo);
 
     } catch (error) {
@@ -474,7 +447,7 @@ async function viewAnime(animeId, animeTitle) {
     }
 }
 
-// NEW: Display anime details page
+// Display anime details page with search bar at bottom
 function displayAnimeDetails(anime) {
     const container = document.getElementById('watchContainer');
     if (!container) return;
@@ -522,7 +495,7 @@ function displayAnimeDetails(anime) {
         </div>
     `;
 
-    // Re-setup search for the new input
+    // Setup search for dynamically created search box
     const searchInputWatch = document.getElementById('searchInputWatch');
     if (searchInputWatch) {
         searchInputWatch.addEventListener('keypress', async function (e) {
@@ -531,21 +504,14 @@ function displayAnimeDetails(anime) {
                 const query = searchInputWatch.value;
 
                 navigateTo('search');
-
-                const searchInput2 = document.getElementById('searchInput2');
-                if (searchInput2) {
-                    searchInput2.value = query;
-                }
-
                 await performAPISearch(query);
             }
         });
     }
 }
 
-// NEW: Play episode (placeholder for future video player)
+// Play episode (placeholder for future video player)
 function playEpisode(episodeId, episodeNumber) {
     console.log('Playing episode:', episodeId, episodeNumber);
     alert(`Episode ${episodeNumber} player coming soon!`);
-    // TODO: Implement video player here
 }
