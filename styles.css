@@ -397,18 +397,3 @@ h2 {
         grid-template-columns: 1fr;
     }
 }
-
-/* Nuclear option - kill all nav underlines */
-nav a::after,
-nav a::before,
-.nav-links a::after,
-.nav-links a::before,
-ul.nav-links li a::after,
-ul.nav-links li a::before {
-    content: "" !important;
-    display: none !important;
-    opacity: 0 !important;
-    visibility: hidden !important;
-    width: 0 !important;
-    height: 0 !important;
-}
