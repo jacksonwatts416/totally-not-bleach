@@ -493,28 +493,41 @@ async function viewAnime(animeId, animeTitle) {
     }
 }
 
-// Display anime details - Enhanced with full API data
+// Display anime details - Enhanced with organized seasons
 function displayAnimeDetails(anime) {
     const container = document.getElementById('watchContainer');
     if (!container) return;
 
     console.log('Displaying anime details:', anime);
 
-    // Process episodes from API
-    const episodesList = anime.episodes && anime.episodes.length > 0
-        ? anime.episodes.map((ep, index) => {
-            const episodeNum = ep.number || index + 1;
+    // Organize episodes into seasons
+    const seasons = organizeEpisodesIntoSeasons(anime.episodes, anime.totalEpisodes);
+
+    // Build the episodes HTML with seasons
+    let episodesHtml = '';
+    if (seasons.length === 0) {
+        episodesHtml = '<p class="empty-message">No episodes available for this anime</p>';
+    } else {
+        episodesHtml = seasons.map(season => `
+            <div class="season-section">
+                <h4 class="season-title">Season ${season.seasonNumber}</h4>
+                <div class="episodes-grid">
+                    ${season.episodes.map(ep => {
+            const episodeNum = ep.number || ep.episodeNumber;
             const episodeTitle = ep.title || `Episode ${episodeNum}`;
             const episodeId = ep.id || `${anime.id}-ep-${episodeNum}`;
 
             return `
-                <div class="episode-item" onclick="playEpisode('${episodeId}', ${episodeNum}, '${escapeHtml(episodeTitle).replace(/'/g, "\\'")}')">
-                    <div class="episode-number">Episode ${episodeNum}</div>
-                    <div class="episode-title">${escapeHtml(episodeTitle)}</div>
+                            <div class="episode-item" onclick="playEpisode('${episodeId}', ${episodeNum}, '${escapeHtml(episodeTitle).replace(/'/g, "\\'")}')">
+                                <div class="episode-number">Episode ${episodeNum}</div>
+                                <div class="episode-title">${escapeHtml(episodeTitle)}</div>
+                            </div>
+                        `;
+        }).join('')}
                 </div>
-            `;
-        }).join('')
-        : '<p class="empty-message">No episodes available for this anime</p>';
+            </div>
+        `).join('');
+    }
 
     // Build the layout with API data
     container.innerHTML = `
@@ -578,13 +591,27 @@ function displayAnimeDetails(anime) {
                         <span class="info-value">${anime.subOrDub}</span>
                     </div>
                     ` : ''}
+                    
+                    ${anime.studios ? `
+                    <div class="info-item">
+                        <span class="info-label">Studios:</span>
+                        <span class="info-value">${anime.studios}</span>
+                    </div>
+                    ` : ''}
+                    
+                    ${anime.duration ? `
+                    <div class="info-item">
+                        <span class="info-label">Episode Duration:</span>
+                        <span class="info-value">${anime.duration}</span>
+                    </div>
+                    ` : ''}
                 </div>
             </div>
             
             <div class="watch-episodes">
                 <h3>Episodes ${anime.episodes && anime.episodes.length > 0 ? `(${anime.episodes.length})` : ''}</h3>
-                <div class="episodes-grid">
-                    ${episodesList}
+                <div class="episodes-container">
+                    ${episodesHtml}
                 </div>
             </div>
         </div>
@@ -603,6 +630,40 @@ function displayAnimeDetails(anime) {
     container.appendChild(searchContainer);
 
     setupSearchBox('searchInput');
+}
+
+// Organize episodes into seasons (12-13 episodes per season is standard)
+function organizeEpisodesIntoSeasons(episodes, totalEpisodes) {
+    if (!episodes || episodes.length === 0) {
+        return [];
+    }
+
+    const EPISODES_PER_SEASON = 12; // Standard anime season length
+    const seasons = [];
+
+    // If totalEpisodes is provided and it's a number, use it to determine seasons
+    let episodesPerSeason = EPISODES_PER_SEASON;
+
+    // For longer shows (24+ episodes), check if it divides evenly
+    if (typeof totalEpisodes === 'number' && totalEpisodes >= 24) {
+        if (totalEpisodes % 24 === 0 || totalEpisodes % 25 === 0) {
+            episodesPerSeason = 24; // Two-cour season
+        } else if (totalEpisodes % 13 === 0) {
+            episodesPerSeason = 13;
+        }
+    }
+
+    // Group episodes into seasons
+    for (let i = 0; i < episodes.length; i += episodesPerSeason) {
+        const seasonEpisodes = episodes.slice(i, i + episodesPerSeason);
+        seasons.push({
+            seasonNumber: Math.floor(i / episodesPerSeason) + 1,
+            episodes: seasonEpisodes
+        });
+    }
+
+    console.log(`Organized ${episodes.length} episodes into ${seasons.length} season(s)`);
+    return seasons;
 }
 
 // Play episode - Enhanced with episode details
