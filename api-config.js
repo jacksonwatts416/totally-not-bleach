@@ -4,7 +4,7 @@
 const API_CONFIGS = {
     consumet: {
         name: 'Consumet API',
-        baseUrl: 'https://api.consumet.org',
+        baseUrl: 'https://consumet-api.herokuapp.com',
         endpoints: {
             search: '/anime/gogoanime/{query}',
             info: '/anime/gogoanime/info/{id}',
@@ -42,7 +42,7 @@ const API_CONFIGS = {
 };
 
 // ⭐ CHANGE THIS TO SWAP APIs ⭐
-const ACTIVE_API = 'consumet';
+const ACTIVE_API = 'jikan';
 
 // Export configuration
 const apiConfig = {
