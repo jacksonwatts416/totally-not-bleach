@@ -305,11 +305,15 @@ function displayAnimeList(list) {
 }
 
 function createAnimeCard(anime) {
+    // Store anime data for later use
+    const animeId = anime.id;
+    const animeTitle = escapeHtml(anime.title);
+
     return `
-        <div class="anime-card" data-id="${anime.id}" onclick="viewAnime('${anime.id}', '${escapeHtml(anime.title).replace(/'/g, "\\'")}')">
-            ${anime.image ? `<img src="${anime.image}" alt="${escapeHtml(anime.title)}" style="width: 100%; border-radius: 12px; margin-bottom: 1rem;">` : ''}
+        <div class="anime-card" data-id="${animeId}" onclick="viewAnime('${animeId}', '${animeTitle.replace(/'/g, "\\'")}')">
+            ${anime.image ? `<img src="${anime.image}" alt="${animeTitle}" style="width: 100%; border-radius: 12px; margin-bottom: 1rem;">` : ''}
             <div class="anime-header">
-                <h3>${escapeHtml(anime.title)}</h3>
+                <h3>${animeTitle}</h3>
                 <span class="status-badge ${anime.status.toLowerCase().replace(/\s/g, '-')}">${anime.status}</span>
             </div>
             <p class="anime-genre">${escapeHtml(anime.genre)}</p>
@@ -435,9 +439,11 @@ window.showAllAnime = showAllAnime;
 window.editAnime = editAnime;
 window.viewAnime = viewAnime;
 
-// View anime details and episodes - Enhanced API data fetching
+// View anime details and episodes - Enhanced API data fetching with debugging
 async function viewAnime(animeId, animeTitle) {
-    console.log('Loading anime:', animeId);
+    console.log('=== VIEW ANIME CALLED ===');
+    console.log('Anime ID:', animeId);
+    console.log('Anime Title:', animeTitle);
 
     navigateTo('watch');
 
@@ -447,23 +453,42 @@ async function viewAnime(animeId, animeTitle) {
     }
 
     try {
+        console.log('Fetching anime info from API...');
+
         // Fetch anime info from API
         const animeInfo = await window.animeAPI.getAnimeInfo(animeId);
 
+        console.log('=== API RESPONSE ===');
+        console.log('Full anime data:', animeInfo);
+
         if (!animeInfo) {
-            watchContainer.innerHTML = '<p class="empty-message">Failed to load anime details.</p>';
+            console.error('No anime info returned from API');
+            watchContainer.innerHTML = '<p class="empty-message">Failed to load anime details. The API returned no data.</p>';
             return;
         }
 
-        console.log('Anime info loaded:', animeInfo);
+        // Log specific fields
+        console.log('Image URL:', animeInfo.image);
+        console.log('Description:', animeInfo.description);
+        console.log('Episodes array:', animeInfo.episodes);
+        console.log('Episode count:', animeInfo.episodes ? animeInfo.episodes.length : 0);
 
         // Display the anime details with API data
         displayAnimeDetails(animeInfo);
 
     } catch (error) {
-        console.error('Failed to load anime:', error);
+        console.error('=== ERROR LOADING ANIME ===');
+        console.error('Error details:', error);
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+
         if (watchContainer) {
-            watchContainer.innerHTML = '<p class="empty-message">Failed to load anime. Please try again!</p>';
+            watchContainer.innerHTML = `
+                <div class="empty-message">
+                    <p>Failed to load anime. Please try again!</p>
+                    <p style="font-size: 0.9rem; margin-top: 1rem; color: #ff6b6b;">Error: ${error.message}</p>
+                </div>
+            `;
         }
     }
 }
