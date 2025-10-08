@@ -151,9 +151,21 @@ function setupSearchBox(inputId) {
     });
 }
 
-// Search functionality - setup home search only
+// Search functionality - setup home search and button
 function setupSearch() {
     setupSearchBox('searchInput');
+
+    // Setup search button click
+    const searchBtn = document.getElementById('searchBtn');
+    if (searchBtn) {
+        searchBtn.addEventListener('click', async function () {
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput && searchInput.value) {
+                navigateTo('search');
+                await performAPISearch(searchInput.value);
+            }
+        });
+    }
 }
 
 // API Search function
