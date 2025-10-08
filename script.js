@@ -125,6 +125,7 @@ function navigateTo(page) {
 function setupSearch() {
     const searchInput = document.getElementById('searchInput');
     const searchInput2 = document.getElementById('searchInput2');
+    const searchInputWatch = document.getElementById('searchInputWatch');
 
     if (searchInput) {
         searchInput.addEventListener('keypress', async function (e) {
@@ -134,6 +135,11 @@ function setupSearch() {
 
                 // Navigate to search page first
                 navigateTo('search');
+
+                // Copy query to search page input
+                if (searchInput2) {
+                    searchInput2.value = query;
+                }
 
                 // Then perform API search
                 await performAPISearch(query);
@@ -146,6 +152,26 @@ function setupSearch() {
             if (e.key === 'Enter') {
                 clearTimeout(searchTimeout);
                 await performAPISearch(searchInput2.value);
+            }
+        });
+    }
+
+    if (searchInputWatch) {
+        searchInputWatch.addEventListener('keypress', async function (e) {
+            if (e.key === 'Enter') {
+                clearTimeout(searchTimeout);
+                const query = searchInputWatch.value;
+
+                // Navigate to search page
+                navigateTo('search');
+
+                // Copy query to search page input
+                if (searchInput2) {
+                    searchInput2.value = query;
+                }
+
+                // Perform search
+                await performAPISearch(query);
             }
         });
     }
