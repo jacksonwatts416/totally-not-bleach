@@ -517,16 +517,10 @@ function displayAnimeDetails(anime) {
             const episodeTitle = ep.title || `Episode ${episodeNum}`;
             const episodeId = ep.id || `${anime.id}-ep-${episodeNum}`;
 
-            // Use anime image as fallback for episode thumbnail
-            const episodeThumbnail = ep.image || anime.image || '';
-
             return `
                             <div class="episode-item" onclick="playEpisode('${episodeId}', ${episodeNum}, '${escapeHtml(episodeTitle).replace(/'/g, "\\'")}')">
-                                ${episodeThumbnail ? `<img src="${episodeThumbnail}" alt="${escapeHtml(episodeTitle)}" class="episode-thumbnail" onerror="this.style.display='none'">` : ''}
-                                <div class="episode-info">
-                                    <div class="episode-number">Episode ${episodeNum}</div>
-                                    <div class="episode-title">${escapeHtml(episodeTitle)}</div>
-                                </div>
+                                <div class="episode-number">Episode ${episodeNum}</div>
+                                <div class="episode-title">${escapeHtml(episodeTitle)}</div>
                             </div>
                         `;
         }).join('')}
