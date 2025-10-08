@@ -464,7 +464,7 @@ async function viewAnime(animeId, animeTitle) {
     }
 }
 
-// Display anime details - Search bar moved to bottom
+// Display anime details - New layout with sidebar
 function displayAnimeDetails(anime) {
     const container = document.getElementById('watchContainer');
     if (!container) return;
@@ -479,29 +479,51 @@ function displayAnimeDetails(anime) {
         : '<p class="empty-message">No episodes available</p>';
 
     container.innerHTML = `
-        <div class="anime-details">
-            <div class="anime-details-header">
-                ${anime.image ? `<img src="${anime.image}" alt="${escapeHtml(anime.title)}" class="anime-details-image">` : ''}
-                <div class="anime-details-info">
+        <div class="watch-layout">
+            <div class="watch-sidebar">
+                <div class="watch-image-container">
+                    ${anime.image ? `<img src="${anime.image}" alt="${escapeHtml(anime.title)}" class="watch-image">` : '<div class="no-image">No Image</div>'}
+                </div>
+                <div class="watch-info">
                     <h2>${escapeHtml(anime.title)}</h2>
-                    <p class="anime-meta">
-                        <span>${anime.releaseDate || 'Unknown'}</span>
-                        ${anime.status ? `<span> • ${anime.status}</span>` : ''}
-                        ${anime.totalEpisodes ? `<span> • ${anime.totalEpisodes} Episodes</span>` : ''}
-                        ${anime.rating ? `<span> • ⭐ ${anime.rating}/10</span>` : ''}
-                    </p>
-                    <p class="anime-genres">
-                        ${anime.genres && anime.genres.length > 0
-            ? anime.genres.map(g => `<span class="genre-tag">${g}</span>`).join(' ')
-            : ''}
-                    </p>
-                    <p class="anime-description">${anime.description || 'No description available.'}</p>
+                    <div class="info-item">
+                        <span class="info-label">Status:</span>
+                        <span class="info-value">${anime.status || 'Unknown'}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Release Year:</span>
+                        <span class="info-value">${anime.releaseDate || 'Unknown'}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Episodes:</span>
+                        <span class="info-value">${anime.totalEpisodes || 'Unknown'}</span>
+                    </div>
+                    ${anime.rating ? `
+                    <div class="info-item">
+                        <span class="info-label">Rating:</span>
+                        <span class="info-value">⭐ ${anime.rating}/10</span>
+                    </div>
+                    ` : ''}
+                    <div class="info-item">
+                        <span class="info-label">Genres:</span>
+                        <div class="genres-list">
+                            ${anime.genres && anime.genres.length > 0
+            ? anime.genres.map(g => `<span class="genre-tag-small">${g}</span>`).join(' ')
+            : 'Unknown'}
+                        </div>
+                    </div>
+                    ${anime.description ? `
+                    <div class="info-item description-item">
+                        <span class="info-label">Description:</span>
+                        <p class="info-description">${anime.description}</p>
+                    </div>
+                    ` : ''}
                 </div>
             </div>
             
-            <div class="episodes-section">
+            <div class="watch-episodes">
                 <h3>Episodes</h3>
-                <div class="episodes-list">
+                <div class="episodes-grid">
                     ${episodesList}
                 </div>
             </div>
