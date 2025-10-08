@@ -494,7 +494,7 @@ h2 {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
-    max-height: 75vh;
+    max-height: calc(100vh - 200px);
     overflow-y: auto;
     padding-right: 0.5rem;
 }
@@ -540,7 +540,7 @@ h2 {
 
 .episode-item {
     background: rgba(255, 255, 255, 0.05);
-    padding: 0.75rem;
+    padding: 0.6rem 0.75rem;
     border-radius: 8px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     cursor: pointer;
@@ -548,8 +548,7 @@ h2 {
     overflow: hidden;
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    min-height: 70px;
+    min-height: 50px;
 }
 
 .episode-item:hover {
@@ -557,15 +556,6 @@ h2 {
     border-color: #0099ff;
     transform: translateX(3px);
     box-shadow: 0 3px 10px rgba(0, 153, 255, 0.2);
-}
-
-.episode-thumbnail {
-    width: 100px;
-    height: 56px;
-    object-fit: cover;
-    border-radius: 6px;
-    background: rgba(255, 255, 255, 0.02);
-    flex-shrink: 0;
 }
 
 .episode-info {
@@ -576,13 +566,13 @@ h2 {
 .episode-number {
     font-weight: bold;
     color: #00d4ff;
-    margin-bottom: 0.15rem;
-    font-size: 0.9rem;
+    margin-bottom: 0.1rem;
+    font-size: 0.85rem;
 }
 
 .episode-title {
     color: #e8eef7;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
