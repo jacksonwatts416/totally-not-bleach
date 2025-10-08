@@ -83,14 +83,7 @@ nav {
     border-radius: 8px;
     transition: all 0.3s ease;
     font-size: 1.1rem;
-    position: relative;
     border: 2px solid transparent;
-}
-
-.nav-links a::before,
-.nav-links a::after {
-    content: none !important;
-    display: none !important;
 }
 
 .nav-links a:hover {
@@ -98,7 +91,6 @@ nav {
     background: rgba(0, 153, 255, 0.1);
     box-shadow: 0 0 20px rgba(0, 153, 255, 0.3);
     color: #0099ff;
-    text-decoration: none !important;
 }
 
 .nav-links a.active {
