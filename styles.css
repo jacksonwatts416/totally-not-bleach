@@ -238,6 +238,7 @@ h2 {
     border-radius: 16px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     transition: all 0.3s ease;
+    cursor: pointer;
 }
 
 .anime-card:hover {
@@ -352,6 +353,114 @@ h2 {
     transform: translateY(-2px);
 }
 
+/* Loading and empty states */
+.loading {
+    text-align: center;
+    padding: 2rem;
+    color: #a0b4cc;
+    font-size: 1.1rem;
+}
+
+.empty-message {
+    text-align: center;
+    padding: 3rem;
+    color: #a0b4cc;
+    font-size: 1.1rem;
+}
+
+/* Anime Details Page */
+.anime-details {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.anime-details-header {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+.anime-details-image {
+    width: 100%;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.anime-details-info h2 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+.anime-meta {
+    color: #a0b4cc;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+}
+
+.anime-genres {
+    margin-bottom: 1.5rem;
+}
+
+.genre-tag {
+    display: inline-block;
+    background: rgba(0, 153, 255, 0.2);
+    color: #00d4ff;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    margin-right: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.anime-description {
+    line-height: 1.8;
+    color: #e8eef7;
+}
+
+/* Episodes Section */
+.episodes-section {
+    margin-top: 3rem;
+}
+
+.episodes-section h3 {
+    color: #00d4ff;
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+}
+
+.episodes-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1rem;
+}
+
+.episode-item {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 1rem;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.episode-item:hover {
+    background: rgba(0, 153, 255, 0.1);
+    border-color: #0099ff;
+    transform: translateX(5px);
+}
+
+.episode-number {
+    font-weight: bold;
+    color: #00d4ff;
+    margin-bottom: 0.25rem;
+}
+
+.episode-title {
+    color: #e8eef7;
+    font-size: 0.9rem;
+}
+
 /* Mobile responsive */
 @media (max-width: 768px) {
     h1 {
@@ -394,6 +503,14 @@ h2 {
     }
 
     #animeListContainer {
+        grid-template-columns: 1fr;
+    }
+
+    .anime-details-header {
+        grid-template-columns: 1fr;
+    }
+
+    .episodes-list {
         grid-template-columns: 1fr;
     }
 }
