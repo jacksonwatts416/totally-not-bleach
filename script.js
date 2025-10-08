@@ -5,9 +5,9 @@ let searchTimeout = null;
 // Background images rotation
 // Add more images here - they'll automatically be included in the rotation
 const backgroundImages = [
-    'images/image1.jpg',
-    'images/image2.jpg',
-    'images/image3.jpg'
+    'Images/image1.jpg',
+    'Images/image2.jpg',
+    'Images/image3.jpg'
 ];
 
 // Initialize the app
