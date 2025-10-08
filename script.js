@@ -3,7 +3,6 @@ let animeList = [];
 let searchTimeout = null;
 
 // Background images rotation
-// Add more images here - they'll automatically be included in the rotation
 const backgroundImages = [
     'images/image1.jpg',
     'images/image2.jpg',
@@ -17,11 +16,9 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 function setRandomBackground() {
-    // Always pick a random image on page load
     const randomIndex = Math.floor(Math.random() * backgroundImages.length);
     const imageUrl = backgroundImages[randomIndex];
 
-    // Update the CSS with the background image
     const style = document.createElement('style');
     style.innerHTML = `
         body::before {
@@ -39,13 +36,11 @@ function initializeApp() {
     loadAnimeList();
     setupResponsiveMenu();
 
-    // Set Home as active by default
     const homeLink = document.querySelector('a[href="#home"]');
     if (homeLink) {
         homeLink.classList.add('active');
     }
 
-    // Load sample data if list is empty
     if (animeList.length === 0) {
         loadSampleData();
     }
@@ -56,7 +51,6 @@ function setupResponsiveMenu() {
     const nav = document.querySelector('nav');
     const navLinks = document.querySelector('.nav-links');
 
-    // Create mobile menu button if it doesn't exist
     if (!document.querySelector('.mobile-menu-btn')) {
         const menuBtn = document.createElement('button');
         menuBtn.className = 'mobile-menu-btn';
@@ -72,7 +66,6 @@ function setupResponsiveMenu() {
             menuBtn.innerHTML = navLinks.classList.contains('active') ? '✕' : '☰';
         });
 
-        // Close menu when clicking a link
         navLinks.querySelectorAll('a').forEach(link => {
             link.addEventListener('click', function () {
                 navLinks.classList.remove('active');
@@ -81,7 +74,6 @@ function setupResponsiveMenu() {
             });
         });
 
-        // Close menu when clicking outside
         document.addEventListener('click', function (e) {
             if (!nav.contains(e.target)) {
                 navLinks.classList.remove('active');
@@ -104,29 +96,24 @@ function setupNavigation() {
 }
 
 function navigateTo(page) {
-    // Remove active class from all nav links
     document.querySelectorAll('.nav-links a').forEach(link => {
         link.classList.remove('active');
     });
 
-    // Add active class to the clicked nav link
     const activeLink = document.querySelector(`a[href="#${page}"]`);
     if (activeLink) {
         activeLink.classList.add('active');
     }
 
-    // Hide all sections
     document.querySelectorAll('.page-section').forEach(section => {
         section.style.display = 'none';
     });
 
-    // Show the selected page
     const targetSection = document.getElementById(page);
     if (targetSection) {
         targetSection.style.display = 'block';
         targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } else {
-        // If it's the home page, show the hero section
         const heroSection = document.querySelector('.hero');
         if (heroSection && page === 'home') {
             heroSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -134,61 +121,100 @@ function navigateTo(page) {
     }
 }
 
-// Enhanced search functionality with debouncing
+// UPDATED: Search functionality with API
 function setupSearch() {
     const searchInput = document.getElementById('searchInput');
+    const searchInput2 = document.getElementById('searchInput2');
 
-    if (!searchInput) return;
+    if (searchInput) {
+        searchInput.addEventListener('keypress', async function (e) {
+            if (e.key === 'Enter') {
+                clearTimeout(searchTimeout);
+                const query = searchInput.value;
 
-    searchInput.addEventListener('keypress', function (e) {
-        if (e.key === 'Enter') {
-            clearTimeout(searchTimeout);
-            performSearch(searchInput.value);
-        }
-    });
+                // Navigate to search page first
+                navigateTo('search');
 
-    // Debounced real-time search
-    searchInput.addEventListener('input', function (e) {
-        clearTimeout(searchTimeout);
+                // Then perform API search
+                await performAPISearch(query);
+            }
+        });
+    }
 
-        const query = e.target.value;
-
-        if (query.length > 2) {
-            searchTimeout = setTimeout(() => {
-                performSearch(query);
-            }, 300); // Wait 300ms after user stops typing
-        } else if (query.length === 0) {
-            displayAnimeList(animeList);
-        }
-    });
+    if (searchInput2) {
+        searchInput2.addEventListener('keypress', async function (e) {
+            if (e.key === 'Enter') {
+                clearTimeout(searchTimeout);
+                await performAPISearch(searchInput2.value);
+            }
+        });
+    }
 }
 
-function performSearch(query) {
-    console.log('Searching for:', query);
+// NEW: API Search function
+async function performAPISearch(query) {
+    console.log('Searching API for:', query);
 
-    if (!query) {
-        displayAnimeList(animeList);
+    if (!query || query.length < 2) {
         return;
     }
 
-    const results = animeList.filter(anime =>
-        anime.title.toLowerCase().includes(query.toLowerCase()) ||
-        anime.genre.toLowerCase().includes(query.toLowerCase())
-    );
+    const searchContainer = document.getElementById('searchResults');
+    if (searchContainer) {
+        searchContainer.innerHTML = '<div class="loading">Searching anime...</div>';
+    }
 
-    displayAnimeList(results);
-    showSearchResults(query, results.length);
+    try {
+        const results = await window.animeAPI.searchAnime(query);
+
+        console.log(`Found ${results.length} results for "${query}"`);
+
+        if (results.length === 0) {
+            if (searchContainer) {
+                searchContainer.innerHTML = `<p class="empty-message">No anime found for "${query}". Try a different search!</p>`;
+            }
+            return;
+        }
+
+        const searchResults = results.map(anime => ({
+            id: anime.id,
+            title: anime.title,
+            genre: anime.genres ? anime.genres.join(', ') : 'Unknown',
+            status: 'Available',
+            rating: anime.rating || 0,
+            image: anime.image,
+            dateAdded: new Date().toISOString()
+        }));
+
+        displaySearchResults(searchResults);
+
+    } catch (error) {
+        console.error('Search failed:', error);
+        if (searchContainer) {
+            searchContainer.innerHTML = `<p class="empty-message">Search failed. Please try again!</p>`;
+        }
+    }
 }
 
-function showSearchResults(query, count) {
-    const resultsText = count === 1 ? 'result' : 'results';
-    console.log(`Found ${count} ${resultsText} for "${query}"`);
+// NEW: Display search results
+function displaySearchResults(results) {
+    const container = document.getElementById('searchResults');
+    if (!container) return;
 
-    // You can add a visual indicator here if you want
-    const container = document.getElementById('animeListContainer');
-    if (container && count === 0) {
-        container.innerHTML = `<p class="empty-message">No anime found for "${query}". Try a different search!</p>`;
+    if (results.length === 0) {
+        container.innerHTML = '<p class="empty-message">No results found.</p>';
+        return;
     }
+
+    container.innerHTML = '<div id="searchResultsGrid"></div>';
+    const grid = document.getElementById('searchResultsGrid');
+    grid.style.display = 'grid';
+    grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(280px, 1fr))';
+    grid.style.gap = '2rem';
+    grid.style.marginTop = '2rem';
+
+    grid.innerHTML = results.map(anime => createAnimeCard(anime)).join('');
+    addTouchFeedback();
 }
 
 // Anime list management
@@ -241,12 +267,10 @@ function updateAnimeRating(id, rating) {
     }
 }
 
-// Enhanced display with loading state
 function displayAnimeList(list) {
     const container = document.getElementById('animeListContainer');
     if (!container) return;
 
-    // Show loading state briefly for better UX
     container.innerHTML = '<div class="loading">Loading...</div>';
 
     setTimeout(() => {
@@ -256,8 +280,6 @@ function displayAnimeList(list) {
         }
 
         container.innerHTML = list.map(anime => createAnimeCard(anime)).join('');
-
-        // Add touch feedback for mobile
         addTouchFeedback();
     }, 100);
 }
@@ -292,7 +314,6 @@ function generateInteractiveStars(animeId, rating) {
     return stars;
 }
 
-// Add touch feedback for better mobile experience
 function addTouchFeedback() {
     document.querySelectorAll('.anime-card, button, .star').forEach(el => {
         el.addEventListener('touchstart', function () {
@@ -305,37 +326,20 @@ function addTouchFeedback() {
     });
 }
 
-// Security: Escape HTML to prevent XSS
 function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
 }
 
-// Storage functions
 function saveAnimeList() {
-    // In-memory storage for now
     console.log('Anime list saved:', animeList.length, 'items');
-
-    // Uncomment to use localStorage:
-    // try {
-    //     localStorage.setItem('animeList', JSON.stringify(animeList));
-    // } catch (e) {
-    //     console.error('Failed to save to localStorage:', e);
-    // }
 }
 
 function loadAnimeList() {
-    // Uncomment to use localStorage:
-    // try {
-    //     const saved = localStorage.getItem('animeList');
-    //     if (saved) animeList = JSON.parse(saved);
-    // } catch (e) {
-    //     console.error('Failed to load from localStorage:', e);
-    // }
+    // Load from localStorage if needed
 }
 
-// Sample data for testing
 function loadSampleData() {
     animeList = [
         {
@@ -366,7 +370,6 @@ function loadSampleData() {
     displayAnimeList(animeList);
 }
 
-// Enhanced filter functions with animation
 function filterByStatus(status) {
     const filtered = animeList.filter(anime => anime.status === status);
     displayAnimeList(filtered);
@@ -386,29 +389,25 @@ function showAllAnime() {
     displayAnimeList(animeList);
 }
 
-// Edit function placeholder
 function editAnime(id) {
     const anime = animeList.find(a => a.id === id);
     if (anime) {
         console.log('Editing anime:', anime);
-        // You can implement a modal or form here
         alert(`Edit functionality coming soon for: ${anime.title}`);
     }
 }
 
-// Handle window resize for responsiveness
 let resizeTimeout;
 window.addEventListener('resize', function () {
     clearTimeout(resizeTimeout);
     resizeTimeout = setTimeout(function () {
-        // Refresh display on significant resize
         if (animeList.length > 0) {
             displayAnimeList(animeList);
         }
     }, 250);
 });
 
-// Export functions for use in HTML
+// Export functions
 window.addAnime = addAnime;
 window.removeAnime = removeAnime;
 window.updateAnimeStatus = updateAnimeStatus;
