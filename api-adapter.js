@@ -59,7 +59,12 @@ class AnimeAPIAdapter {
             // Try to get episodes from GogoAnime
             console.log('Attempting to fetch episodes from GogoAnime...');
             const episodes = await this.getEpisodesFromGogo(animeInfo.title, totalEps);
-            animeInfo.episodes = episodes;
+
+            // Try to get episode images from Jikan
+            console.log('Fetching episode images from Jikan...');
+            const episodesWithImages = await this.getEpisodeImages(id, episodes);
+
+            animeInfo.episodes = episodesWithImages;
 
             console.log('Final anime info with episodes:', animeInfo);
             console.log(`Total episodes in final object: ${animeInfo.episodes.length}`);
@@ -68,6 +73,43 @@ class AnimeAPIAdapter {
         } catch (error) {
             console.error('Info error:', error);
             return null;
+        }
+    }
+
+    // Get episode images from Jikan API
+    async getEpisodeImages(animeId, episodes) {
+        try {
+            // Jikan provides episode data including images
+            const episodeUrl = `${this.jikanBase}/anime/${animeId}/episodes`;
+            console.log('Fetching episode images from:', episodeUrl);
+
+            const response = await fetch(episodeUrl);
+
+            if (!response.ok) {
+                console.log('Could not fetch episode images, using episodes without images');
+                return episodes;
+            }
+
+            const data = await response.json();
+            const jikanEpisodes = data.data || [];
+
+            console.log(`Found ${jikanEpisodes.length} episodes with metadata from Jikan`);
+
+            // Merge episode images with our episode list
+            return episodes.map(ep => {
+                const jikanEp = jikanEpisodes.find(je => je.mal_id === ep.number);
+                if (jikanEp) {
+                    return {
+                        ...ep,
+                        title: jikanEp.title || ep.title,
+                        image: jikanEp.images?.jpg?.image_url || null
+                    };
+                }
+                return ep;
+            });
+        } catch (error) {
+            console.error('Error fetching episode images:', error);
+            return episodes;
         }
     }
 
