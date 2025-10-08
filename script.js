@@ -121,21 +121,29 @@ function navigateTo(page) {
     }
 }
 
-// Search functionality - only setup home search
+// Unified search setup function
+function setupSearchBox(inputId) {
+    const searchInput = document.getElementById(inputId);
+    if (!searchInput) return;
+
+    // Remove any existing event listeners by cloning the element
+    const newInput = searchInput.cloneNode(true);
+    searchInput.parentNode.replaceChild(newInput, searchInput);
+
+    // Add the event listener to the new element
+    newInput.addEventListener('keypress', async function (e) {
+        if (e.key === 'Enter') {
+            clearTimeout(searchTimeout);
+            const query = newInput.value;
+            navigateTo('search');
+            await performAPISearch(query);
+        }
+    });
+}
+
+// Search functionality - setup home search only
 function setupSearch() {
-    const searchInput = document.getElementById('searchInput');
-
-    if (searchInput) {
-        searchInput.addEventListener('keypress', async function (e) {
-            if (e.key === 'Enter') {
-                clearTimeout(searchTimeout);
-                const query = searchInput.value;
-
-                navigateTo('search');
-                await performAPISearch(query);
-            }
-        });
-    }
+    setupSearchBox('searchInput');
 }
 
 // API Search function
@@ -183,7 +191,7 @@ async function performAPISearch(query) {
     }
 }
 
-// Display search results with search bar
+// Display search results - FIXED: No search bar here
 function displaySearchResults(results) {
     const container = document.getElementById('searchResults');
     if (!container) return;
@@ -193,12 +201,8 @@ function displaySearchResults(results) {
         return;
     }
 
-    container.innerHTML = `
-        <div class="search-container" style="margin-bottom: 2rem;">
-            <input type="text" class="search-box" placeholder="Search anime..." id="searchInput2">
-        </div>
-        <div id="searchResultsGrid"></div>
-    `;
+    // Just display the grid, no search bar
+    container.innerHTML = '<div id="searchResultsGrid"></div>';
 
     const grid = document.getElementById('searchResultsGrid');
     grid.style.display = 'grid';
@@ -207,17 +211,6 @@ function displaySearchResults(results) {
 
     grid.innerHTML = results.map(anime => createAnimeCard(anime)).join('');
     addTouchFeedback();
-
-    // Setup search for dynamically created search box
-    const searchInput2 = document.getElementById('searchInput2');
-    if (searchInput2) {
-        searchInput2.addEventListener('keypress', async function (e) {
-            if (e.key === 'Enter') {
-                clearTimeout(searchTimeout);
-                await performAPISearch(searchInput2.value);
-            }
-        });
-    }
 }
 
 // Anime list management
@@ -447,7 +440,7 @@ async function viewAnime(animeId, animeTitle) {
     }
 }
 
-// Display anime details page with search bar at bottom
+// Display anime details - FIXED: No search bar here
 function displayAnimeDetails(anime) {
     const container = document.getElementById('watchContainer');
     if (!container) return;
@@ -461,6 +454,7 @@ function displayAnimeDetails(anime) {
           `).join('')
         : '<p class="empty-message">No episodes available</p>';
 
+    // No search bar added here anymore
     container.innerHTML = `
         <div class="anime-details">
             <div class="anime-details-header">
@@ -488,26 +482,8 @@ function displayAnimeDetails(anime) {
                     ${episodesList}
                 </div>
             </div>
-            
-            <div class="search-container" style="margin-top: 3rem;">
-                <input type="text" class="search-box" placeholder="Search for more anime..." id="searchInputWatch">
-            </div>
         </div>
     `;
-
-    // Setup search for dynamically created search box
-    const searchInputWatch = document.getElementById('searchInputWatch');
-    if (searchInputWatch) {
-        searchInputWatch.addEventListener('keypress', async function (e) {
-            if (e.key === 'Enter') {
-                clearTimeout(searchTimeout);
-                const query = searchInputWatch.value;
-
-                navigateTo('search');
-                await performAPISearch(query);
-            }
-        });
-    }
 }
 
 // Play episode (placeholder for future video player)
