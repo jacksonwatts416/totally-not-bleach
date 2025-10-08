@@ -478,31 +478,52 @@ h2 {
     margin-bottom: 1.5rem;
 }
 
-.episodes-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 1rem;
+.episodes-container {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
     max-height: 70vh;
     overflow-y: auto;
     padding-right: 0.5rem;
 }
 
-.episodes-grid::-webkit-scrollbar {
+.episodes-container::-webkit-scrollbar {
     width: 8px;
 }
 
-.episodes-grid::-webkit-scrollbar-track {
+.episodes-container::-webkit-scrollbar-track {
     background: rgba(255, 255, 255, 0.05);
     border-radius: 4px;
 }
 
-.episodes-grid::-webkit-scrollbar-thumb {
+.episodes-container::-webkit-scrollbar-thumb {
     background: rgba(0, 153, 255, 0.3);
     border-radius: 4px;
 }
 
-.episodes-grid::-webkit-scrollbar-thumb:hover {
+.episodes-container::-webkit-scrollbar-thumb:hover {
     background: rgba(0, 153, 255, 0.5);
+}
+
+.season-section {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.season-title {
+    color: #88c5ff;
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid rgba(0, 153, 255, 0.3);
+}
+
+.episodes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1rem;
 }
 
 .episode-item {
@@ -579,8 +600,11 @@ h2 {
         grid-template-columns: 1fr;
     }
 
+    .episodes-container {
+        max-height: 50vh;
+    }
+
     .episodes-grid {
         grid-template-columns: 1fr;
-        max-height: 50vh;
     }
 }
