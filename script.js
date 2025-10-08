@@ -119,6 +119,16 @@ function navigateTo(page) {
             heroSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
     }
+
+    // Show/hide hero search based on page
+    const heroSearch = document.querySelector('.hero .search-container');
+    if (heroSearch) {
+        if (page === 'home') {
+            heroSearch.style.display = 'block';
+        } else {
+            heroSearch.style.display = 'none';
+        }
+    }
 }
 
 // Unified search setup function
@@ -191,7 +201,7 @@ async function performAPISearch(query) {
     }
 }
 
-// Display search results - FIXED: No search bar here
+// Display search results - Search bar positioned below title
 function displaySearchResults(results) {
     const container = document.getElementById('searchResults');
     if (!container) return;
@@ -201,8 +211,13 @@ function displaySearchResults(results) {
         return;
     }
 
-    // Just display the grid, no search bar
-    container.innerHTML = '<div id="searchResultsGrid"></div>';
+    // Add search bar below the "Search Anime" heading
+    container.innerHTML = `
+        <div class="search-container" style="margin-bottom: 2rem; margin-top: -1rem;">
+            <input type="text" class="search-box" placeholder="Search anime..." id="searchInput">
+        </div>
+        <div id="searchResultsGrid"></div>
+    `;
 
     const grid = document.getElementById('searchResultsGrid');
     grid.style.display = 'grid';
@@ -211,6 +226,15 @@ function displaySearchResults(results) {
 
     grid.innerHTML = results.map(anime => createAnimeCard(anime)).join('');
     addTouchFeedback();
+
+    // Setup search functionality for the search page
+    setupSearchBox('searchInput');
+
+    // Hide hero search bar when on search page
+    const heroSearch = document.querySelector('.hero .search-container');
+    if (heroSearch) {
+        heroSearch.style.display = 'none';
+    }
 }
 
 // Anime list management
@@ -440,7 +464,7 @@ async function viewAnime(animeId, animeTitle) {
     }
 }
 
-// Display anime details - FIXED: No search bar here
+// Display anime details - Search bar moved to bottom
 function displayAnimeDetails(anime) {
     const container = document.getElementById('watchContainer');
     if (!container) return;
@@ -454,7 +478,6 @@ function displayAnimeDetails(anime) {
           `).join('')
         : '<p class="empty-message">No episodes available</p>';
 
-    // No search bar added here anymore
     container.innerHTML = `
         <div class="anime-details">
             <div class="anime-details-header">
@@ -484,6 +507,20 @@ function displayAnimeDetails(anime) {
             </div>
         </div>
     `;
+
+    // Move search bar to bottom of watch page
+    const heroSearch = document.querySelector('.hero .search-container');
+    if (heroSearch) {
+        heroSearch.style.display = 'none';
+    }
+
+    const searchContainer = document.createElement('div');
+    searchContainer.className = 'search-container';
+    searchContainer.style.marginTop = '3rem';
+    searchContainer.innerHTML = '<input type="text" class="search-box" placeholder="Search for more anime..." id="searchInput">';
+    container.appendChild(searchContainer);
+
+    setupSearchBox('searchInput');
 }
 
 // Play episode (placeholder for future video player)
