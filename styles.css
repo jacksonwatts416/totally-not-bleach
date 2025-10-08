@@ -74,13 +74,18 @@ nav {
     transition: all 0.3s ease;
     font-size: 1.1rem;
     position: relative;
-    border: 1px solid transparent;
+    border: 2px solid transparent;
+}
+
+.nav-links a::after {
+    display: none;
 }
 
 .nav-links a:hover {
     border-color: #0099ff;
     background: rgba(0, 153, 255, 0.1);
     box-shadow: 0 0 20px rgba(0, 153, 255, 0.3);
+    color: #0099ff;
 }
 
 .nav-links a.active {
