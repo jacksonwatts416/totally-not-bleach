@@ -23,8 +23,12 @@ class AnimeAPIAdapter {
     async searchAnime(query) {
         try {
             const url = this.buildUrl(this.config.endpoints.search, { query });
+            console.log('Search URL:', url);
+
             const response = await fetch(url);
             const data = await response.json();
+
+            console.log('Search response:', data);
 
             // Normalize data to common format
             return this.normalizeSearchResults(data);
@@ -38,10 +42,22 @@ class AnimeAPIAdapter {
     async getAnimeInfo(id) {
         try {
             const url = this.buildUrl(this.config.endpoints.info, { id });
-            const response = await fetch(url);
-            const data = await response.json();
+            console.log('Info URL:', url);
 
-            return this.normalizeAnimeInfo(data);
+            const response = await fetch(url);
+
+            if (!response.ok) {
+                console.error('API returned error:', response.status, response.statusText);
+                return null;
+            }
+
+            const data = await response.json();
+            console.log('Raw API response:', data);
+
+            const normalized = this.normalizeAnimeInfo(data);
+            console.log('Normalized anime info:', normalized);
+
+            return normalized;
         } catch (error) {
             console.error('Info error:', error);
             return null;
@@ -125,22 +141,27 @@ class AnimeAPIAdapter {
                 status: data.status,
                 totalEpisodes: data.totalEpisodes,
                 episodes: data.episodes || [],
-                rating: null
+                rating: null,
+                subOrDub: data.subOrDub
             };
         }
 
         if (this.apiName === 'jikan') {
+            // Jikan wraps data in a 'data' object
+            const anime = data.data || data;
+
             return {
-                id: data.mal_id,
-                title: data.title,
-                image: data.images?.jpg?.large_image_url,
-                description: data.synopsis,
-                genres: data.genres?.map(g => g.name) || [],
-                releaseDate: data.year,
-                status: data.status,
-                totalEpisodes: data.episodes,
-                episodes: [],
-                rating: data.score
+                id: anime.mal_id,
+                title: anime.title || anime.title_english || 'Unknown Title',
+                image: anime.images?.jpg?.large_image_url || anime.images?.jpg?.image_url,
+                description: anime.synopsis || 'No description available.',
+                genres: anime.genres?.map(g => g.name) || [],
+                releaseDate: anime.year || anime.aired?.from?.substring(0, 4) || 'Unknown',
+                status: anime.status || 'Unknown',
+                totalEpisodes: anime.episodes || 'Unknown',
+                episodes: [], // Jikan doesn't provide episode list in main endpoint
+                rating: anime.score || null,
+                subOrDub: anime.type || null
             };
         }
 
