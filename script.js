@@ -39,6 +39,12 @@ function initializeApp() {
     loadAnimeList();
     setupResponsiveMenu();
 
+    // Set Home as active by default
+    const homeLink = document.querySelector('a[href="#home"]');
+    if (homeLink) {
+        homeLink.classList.add('active');
+    }
+
     // Load sample data if list is empty
     if (animeList.length === 0) {
         loadSampleData();
@@ -98,6 +104,17 @@ function setupNavigation() {
 }
 
 function navigateTo(page) {
+    // Remove active class from all nav links
+    document.querySelectorAll('.nav-links a').forEach(link => {
+        link.classList.remove('active');
+    });
+
+    // Add active class to the clicked nav link
+    const activeLink = document.querySelector(`a[href="#${page}"]`);
+    if (activeLink) {
+        activeLink.classList.add('active');
+    }
+
     // Hide all sections
     document.querySelectorAll('.page-section').forEach(section => {
         section.style.display = 'none';
@@ -108,6 +125,12 @@ function navigateTo(page) {
     if (targetSection) {
         targetSection.style.display = 'block';
         targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+        // If it's the home page, show the hero section
+        const heroSection = document.querySelector('.hero');
+        if (heroSection && page === 'home') {
+            heroSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
     }
 }
 
