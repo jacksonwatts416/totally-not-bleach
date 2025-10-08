@@ -98,7 +98,6 @@ nav {
     border-color: rgba(0, 153, 255, 0.6);
     background: rgba(0, 153, 255, 0.05);
     box-shadow: 0 0 15px rgba(0, 153, 255, 0.2);
-    color: #88c5ff;
 }
 
 .nav-links a.active {
