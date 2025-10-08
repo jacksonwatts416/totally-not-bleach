@@ -435,7 +435,7 @@ window.showAllAnime = showAllAnime;
 window.editAnime = editAnime;
 window.viewAnime = viewAnime;
 
-// View anime details and episodes
+// View anime details and episodes - Enhanced API data fetching
 async function viewAnime(animeId, animeTitle) {
     console.log('Loading anime:', animeId);
 
@@ -447,6 +447,7 @@ async function viewAnime(animeId, animeTitle) {
     }
 
     try {
+        // Fetch anime info from API
         const animeInfo = await window.animeAPI.getAnimeInfo(animeId);
 
         if (!animeInfo) {
@@ -454,6 +455,9 @@ async function viewAnime(animeId, animeTitle) {
             return;
         }
 
+        console.log('Anime info loaded:', animeInfo);
+
+        // Display the anime details with API data
         displayAnimeDetails(animeInfo);
 
     } catch (error) {
@@ -464,65 +468,96 @@ async function viewAnime(animeId, animeTitle) {
     }
 }
 
-// Display anime details - New layout with sidebar
+// Display anime details - Enhanced with full API data
 function displayAnimeDetails(anime) {
     const container = document.getElementById('watchContainer');
     if (!container) return;
 
-    const episodesList = anime.episodes && anime.episodes.length > 0
-        ? anime.episodes.map((ep, index) => `
-            <div class="episode-item" onclick="playEpisode('${ep.id}', ${index + 1})">
-                <div class="episode-number">Episode ${ep.number || index + 1}</div>
-                <div class="episode-title">${escapeHtml(ep.title || `Episode ${index + 1}`)}</div>
-            </div>
-          `).join('')
-        : '<p class="empty-message">No episodes available</p>';
+    console.log('Displaying anime details:', anime);
 
+    // Process episodes from API
+    const episodesList = anime.episodes && anime.episodes.length > 0
+        ? anime.episodes.map((ep, index) => {
+            const episodeNum = ep.number || index + 1;
+            const episodeTitle = ep.title || `Episode ${episodeNum}`;
+            const episodeId = ep.id || `${anime.id}-ep-${episodeNum}`;
+
+            return `
+                <div class="episode-item" onclick="playEpisode('${episodeId}', ${episodeNum}, '${escapeHtml(episodeTitle).replace(/'/g, "\\'")}')">
+                    <div class="episode-number">Episode ${episodeNum}</div>
+                    <div class="episode-title">${escapeHtml(episodeTitle)}</div>
+                </div>
+            `;
+        }).join('')
+        : '<p class="empty-message">No episodes available for this anime</p>';
+
+    // Build the layout with API data
     container.innerHTML = `
         <div class="watch-layout">
             <div class="watch-sidebar">
                 <div class="watch-image-container">
-                    ${anime.image ? `<img src="${anime.image}" alt="${escapeHtml(anime.title)}" class="watch-image">` : '<div class="no-image">No Image</div>'}
+                    ${anime.image
+            ? `<img src="${anime.image}" alt="${escapeHtml(anime.title)}" class="watch-image" onerror="this.parentElement.innerHTML='<div class=\\'no-image\\'>Image Not Available</div>'">`
+            : '<div class="no-image">No Image Available</div>'}
                 </div>
                 <div class="watch-info">
                     <h2>${escapeHtml(anime.title)}</h2>
+                    
+                    ${anime.status ? `
                     <div class="info-item">
                         <span class="info-label">Status:</span>
-                        <span class="info-value">${anime.status || 'Unknown'}</span>
+                        <span class="info-value">${anime.status}</span>
                     </div>
+                    ` : ''}
+                    
+                    ${anime.releaseDate ? `
                     <div class="info-item">
                         <span class="info-label">Release Year:</span>
-                        <span class="info-value">${anime.releaseDate || 'Unknown'}</span>
+                        <span class="info-value">${anime.releaseDate}</span>
                     </div>
+                    ` : ''}
+                    
+                    ${anime.totalEpisodes ? `
                     <div class="info-item">
-                        <span class="info-label">Episodes:</span>
-                        <span class="info-value">${anime.totalEpisodes || 'Unknown'}</span>
+                        <span class="info-label">Total Episodes:</span>
+                        <span class="info-value">${anime.totalEpisodes}</span>
                     </div>
+                    ` : ''}
+                    
                     ${anime.rating ? `
                     <div class="info-item">
                         <span class="info-label">Rating:</span>
                         <span class="info-value">⭐ ${anime.rating}/10</span>
                     </div>
                     ` : ''}
+                    
+                    ${anime.genres && anime.genres.length > 0 ? `
                     <div class="info-item">
                         <span class="info-label">Genres:</span>
                         <div class="genres-list">
-                            ${anime.genres && anime.genres.length > 0
-            ? anime.genres.map(g => `<span class="genre-tag-small">${g}</span>`).join(' ')
-            : 'Unknown'}
+                            ${anime.genres.map(g => `<span class="genre-tag-small">${g}</span>`).join(' ')}
                         </div>
                     </div>
+                    ` : ''}
+                    
                     ${anime.description ? `
                     <div class="info-item description-item">
                         <span class="info-label">Description:</span>
                         <p class="info-description">${anime.description}</p>
                     </div>
                     ` : ''}
+                    
+                    ${anime.subOrDub ? `
+                    <div class="info-item">
+                        <span class="info-label">Type:</span>
+                        <span class="info-value">${anime.subOrDub}</span>
+                    </div>
+                    ` : ''}
                 </div>
             </div>
             
             <div class="watch-episodes">
-                <h3>Episodes</h3>
+                <h3>Episodes ${anime.episodes && anime.episodes.length > 0 ? `(${anime.episodes.length})` : ''}</h3>
                 <div class="episodes-grid">
                     ${episodesList}
                 </div>
@@ -545,8 +580,8 @@ function displayAnimeDetails(anime) {
     setupSearchBox('searchInput');
 }
 
-// Play episode (placeholder for future video player)
-function playEpisode(episodeId, episodeNumber) {
-    console.log('Playing episode:', episodeId, episodeNumber);
-    alert(`Episode ${episodeNumber} player coming soon!`);
+// Play episode - Enhanced with episode details
+function playEpisode(episodeId, episodeNumber, episodeTitle) {
+    console.log('Playing episode:', { episodeId, episodeNumber, episodeTitle });
+    alert(`Episode ${episodeNumber}: ${episodeTitle}\n\nVideo player functionality coming soon!\n\nEpisode ID: ${episodeId}`);
 }
