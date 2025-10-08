@@ -4,9 +4,9 @@ let searchTimeout = null;
 
 // Background images rotation
 const backgroundImages = [
-    'images/image1.jpg',
-    'images/image2.jpg',
-    'images/image3.jpg'
+    'Images/image1.jpg',
+    'Images/image2.jpg',
+    'Images/image3.jpg'
 ];
 
 // Initialize the app
@@ -515,8 +515,32 @@ function displayAnimeDetails(anime) {
                     ${episodesList}
                 </div>
             </div>
+            
+            <div class="search-container" style="margin-top: 3rem;">
+                <input type="text" class="search-box" placeholder="Search for more anime..." id="searchInputWatch">
+            </div>
         </div>
     `;
+
+    // Re-setup search for the new input
+    const searchInputWatch = document.getElementById('searchInputWatch');
+    if (searchInputWatch) {
+        searchInputWatch.addEventListener('keypress', async function (e) {
+            if (e.key === 'Enter') {
+                clearTimeout(searchTimeout);
+                const query = searchInputWatch.value;
+
+                navigateTo('search');
+
+                const searchInput2 = document.getElementById('searchInput2');
+                if (searchInput2) {
+                    searchInput2.value = query;
+                }
+
+                await performAPISearch(query);
+            }
+        });
+    }
 }
 
 // NEW: Play episode (placeholder for future video player)
