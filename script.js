@@ -265,6 +265,7 @@ function displayAnimeList(list) {
 function createAnimeCard(anime) {
     return `
         <div class="anime-card" data-id="${anime.id}">
+            ${anime.image ? `<img src="${anime.image}" alt="${escapeHtml(anime.title)}" style="width: 100%; border-radius: 12px; margin-bottom: 1rem;">` : ''}
             <div class="anime-header">
                 <h3>${escapeHtml(anime.title)}</h3>
                 <span class="status-badge ${anime.status.toLowerCase().replace(/\s/g, '-')}">${anime.status}</span>
