@@ -74,27 +74,19 @@ nav {
     transition: all 0.3s ease;
     font-size: 1.1rem;
     position: relative;
-}
-
-.nav-links a::after {
-    content: '';
-    position: absolute;
-    bottom: -8px;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: #0099ff;
-    opacity: 0;
-    filter: blur(8px);
-    box-shadow: 0 0 15px #0099ff, 0 0 30px #0099ff, 0 0 45px #0099ff;
-    transition: opacity 0.3s ease;
-}
-
-.nav-links a:hover::after {
-    opacity: 1;
+    border: 1px solid transparent;
 }
 
 .nav-links a:hover {
+    border-color: #0099ff;
+    background: rgba(0, 153, 255, 0.1);
+    box-shadow: 0 0 20px rgba(0, 153, 255, 0.3);
+}
+
+.nav-links a.active {
+    border-color: #0099ff;
+    background: rgba(0, 153, 255, 0.15);
+    box-shadow: 0 0 20px rgba(0, 153, 255, 0.3);
     color: #0099ff;
 }
 
