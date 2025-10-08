@@ -22,9 +22,9 @@ body::before {
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    filter: grayscale(100%) brightness(0.55);
+    filter: grayscale(100%) brightness(0.3);
     z-index: -2;
-    opacity: 0.7;
+    opacity: 0.4;
 }
 
 body::after {
@@ -79,22 +79,23 @@ nav {
 .nav-links a::after {
     content: '';
     position: absolute;
-    bottom: -5px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 0;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, #00d4ff, transparent);
-    box-shadow: 0 0 10px #00d4ff, 0 0 20px #00d4ff;
-    transition: width 0.3s ease;
+    bottom: -8px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: #0099ff;
+    opacity: 0;
+    filter: blur(8px);
+    box-shadow: 0 0 15px #0099ff, 0 0 30px #0099ff, 0 0 45px #0099ff;
+    transition: opacity 0.3s ease;
 }
 
 .nav-links a:hover::after {
-    width: 100%;
+    opacity: 1;
 }
 
 .nav-links a:hover {
-    color: #00d4ff;
+    color: #0099ff;
 }
 
 /* Mobile menu button */
