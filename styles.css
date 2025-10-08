@@ -86,6 +86,14 @@ nav {
     border: 2px solid transparent;
 }
 
+.nav-links a::before,
+.nav-links a::after {
+    content: none !important;
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+}
+
 .nav-links a:hover {
     border-color: #0099ff;
     background: rgba(0, 153, 255, 0.1);
@@ -342,21 +350,6 @@ h2 {
 .btn-remove:hover {
     background: rgba(255, 0, 0, 0.3);
     transform: translateY(-2px);
-}
-
-/* Loading and empty states */
-.loading {
-    text-align: center;
-    padding: 2rem;
-    color: #a0b4cc;
-    font-size: 1.1rem;
-}
-
-.empty-message {
-    text-align: center;
-    padding: 3rem;
-    color: #a0b4cc;
-    font-size: 1.1rem;
 }
 
 /* Mobile responsive */
