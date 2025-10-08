@@ -53,11 +53,17 @@ class AnimeAPIAdapter {
             // Get anime info from Jikan
             const animeInfo = this.normalizeAnimeInfo(data);
 
+            // Get total episodes count for placeholder generation
+            const totalEps = typeof animeInfo.totalEpisodes === 'number' ? animeInfo.totalEpisodes : 12;
+
             // Try to get episodes from GogoAnime
-            const episodes = await this.getEpisodesFromGogo(animeInfo.title);
+            console.log('Attempting to fetch episodes from GogoAnime...');
+            const episodes = await this.getEpisodesFromGogo(animeInfo.title, totalEps);
             animeInfo.episodes = episodes;
 
             console.log('Final anime info with episodes:', animeInfo);
+            console.log(`Total episodes in final object: ${animeInfo.episodes.length}`);
+
             return animeInfo;
         } catch (error) {
             console.error('Info error:', error);
@@ -66,18 +72,33 @@ class AnimeAPIAdapter {
     }
 
     // Get episodes from GogoAnime scraper
-    async getEpisodesFromGogo(animeTitle) {
+    async getEpisodesFromGogo(animeTitle, totalEpisodes = 12) {
         try {
+            console.log('=== FETCHING EPISODES ===');
+            console.log('Anime title:', animeTitle);
+
+            // Clean up the title for better search results
+            const cleanTitle = animeTitle.replace(/[^\w\s]/gi, '').trim();
+            console.log('Cleaned title:', cleanTitle);
+
             // Search GogoAnime for the anime
-            const searchUrl = `${this.gogoBase}/search?q=${encodeURIComponent(animeTitle)}`;
+            const searchUrl = `${this.gogoBase}/${encodeURIComponent(cleanTitle)}`;
             console.log('Searching GogoAnime:', searchUrl);
 
             const searchResponse = await fetch(searchUrl);
+            console.log('Search response status:', searchResponse.status);
+
+            if (!searchResponse.ok) {
+                console.error('GogoAnime search failed:', searchResponse.status);
+                return this.generatePlaceholderEpisodes(totalEpisodes);
+            }
+
             const searchData = await searchResponse.json();
+            console.log('Search data:', searchData);
 
             if (!searchData || !searchData.results || searchData.results.length === 0) {
-                console.log('No results from GogoAnime');
-                return [];
+                console.log('No results from GogoAnime, using placeholder episodes');
+                return this.generatePlaceholderEpisodes(totalEpisodes);
             }
 
             // Get the first result's ID
@@ -89,14 +110,22 @@ class AnimeAPIAdapter {
             console.log('Getting episodes from:', infoUrl);
 
             const infoResponse = await fetch(infoUrl);
-            const infoData = await infoResponse.json();
+            console.log('Info response status:', infoResponse.status);
 
-            if (!infoData || !infoData.episodes) {
-                console.log('No episodes found');
-                return [];
+            if (!infoResponse.ok) {
+                console.error('GogoAnime info failed:', infoResponse.status);
+                return this.generatePlaceholderEpisodes(totalEpisodes);
             }
 
-            console.log(`Found ${infoData.episodes.length} episodes`);
+            const infoData = await infoResponse.json();
+            console.log('Info data:', infoData);
+
+            if (!infoData || !infoData.episodes || infoData.episodes.length === 0) {
+                console.log('No episodes found, using placeholder');
+                return this.generatePlaceholderEpisodes(totalEpisodes);
+            }
+
+            console.log(`✅ Found ${infoData.episodes.length} episodes from GogoAnime`);
             return infoData.episodes.map(ep => ({
                 id: ep.id,
                 number: ep.number,
@@ -105,8 +134,25 @@ class AnimeAPIAdapter {
             }));
         } catch (error) {
             console.error('Error getting episodes from GogoAnime:', error);
-            return [];
+            return this.generatePlaceholderEpisodes(totalEpisodes);
         }
+    }
+
+    // Generate placeholder episodes based on total episode count
+    generatePlaceholderEpisodes(totalEpisodes = 12) {
+        console.log(`Generating ${totalEpisodes} placeholder episodes`);
+        const episodes = [];
+
+        for (let i = 1; i <= totalEpisodes; i++) {
+            episodes.push({
+                id: `placeholder-ep-${i}`,
+                number: i,
+                title: `Episode ${i}`,
+                url: null
+            });
+        }
+
+        return episodes;
     }
 
     // Get streaming links for an episode
