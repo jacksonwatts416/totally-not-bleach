@@ -1,3 +1,13 @@
+a {
+    text-decoration: none !important;
+}
+
+a::before,
+a::after {
+    content: none !important;
+    display: none !important;
+}
+
 * {
     margin: 0;
     padding: 0;
