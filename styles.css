@@ -1,22 +1,18 @@
-/* Remove all pseudo-elements from interactive elements */
-a,
-button,
-input,
-.search-btn,
-.mobile-menu-btn {
+a {
     text-decoration: none !important;
 }
 
 a::before,
-a::after,
+a::after {
+    content: none !important;
+    display: none !important;
+}
+
+/* Fix for white box - suppress button pseudo-elements */
 button::before,
 button::after,
 input::before,
-input::after,
-.search-btn::before,
-.search-btn::after,
-.mobile-menu-btn::before,
-.mobile-menu-btn::after {
+input::after {
     content: none !important;
     display: none !important;
     opacity: 0 !important;
@@ -99,6 +95,14 @@ nav {
     transition: all 0.3s ease;
     font-size: 1.1rem;
     border: 2px solid transparent;
+}
+
+.nav-links a::before,
+.nav-links a::after {
+    content: none !important;
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
 }
 
 .nav-links a:hover {
@@ -336,11 +340,6 @@ h2 {
 .status-badge.plan-to-watch {
     background: rgba(255, 255, 0, 0.2);
     color: #ffdd00;
-}
-
-.status-badge.available {
-    background: rgba(0, 255, 0, 0.2);
-    color: #00ff88;
 }
 
 .anime-rating {
