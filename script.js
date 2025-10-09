@@ -754,12 +754,14 @@ function showVideoLoading() {
         </div>
     `;
 
-    // Animate everything down
+    // Animate slide down
     playerContainer.style.maxHeight = '0';
     playerContainer.style.opacity = '0';
+    playerContainer.style.transform = 'translateY(-20px)';
     setTimeout(() => {
-        playerContainer.style.maxHeight = '600px';
+        playerContainer.style.maxHeight = '700px';
         playerContainer.style.opacity = '1';
+        playerContainer.style.transform = 'translateY(0)';
     }, 10);
 }
 
@@ -779,16 +781,13 @@ function displayVideoPlayer(videoUrl, episodeNumber, episodeTitle) {
     const playerContainer = document.getElementById('videoPlayerContainer');
     if (!playerContainer) return;
 
-    // FULLSCREEN BUTTON REMOVED - Only close button remains
     playerContainer.innerHTML = `
         <div class="video-player-wrapper">
             <div class="video-header">
                 <h3>Episode ${episodeNumber}: ${episodeTitle}</h3>
-                <div class="video-controls-header">
-                    <button onclick="closeVideoPlayer()" class="close-video-btn" title="Close">✕</button>
-                </div>
+                <button onclick="closeVideoPlayer()" class="close-video-btn" title="Close">✕</button>
             </div>
-            <div class="video-player-inner" id="videoPlayerInner">
+            <div class="video-player-inner">
                 <video id="episodeVideo" controls autoplay>
                     <source src="${videoUrl}" type="video/mp4">
                     Your browser does not support the video tag.
@@ -819,6 +818,7 @@ function closeVideoPlayer() {
     // Animate out
     playerContainer.style.maxHeight = '0';
     playerContainer.style.opacity = '0';
+    playerContainer.style.transform = 'translateY(-20px)';
 
     setTimeout(() => {
         playerContainer.remove();
