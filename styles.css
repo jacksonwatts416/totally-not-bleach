@@ -655,6 +655,121 @@ h2 {
     text-overflow: ellipsis;
 }
 
+/* Video Player Styles */
+.video-player-container {
+    width: 100%;
+    margin-bottom: 2rem;
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+.video-player-wrapper {
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 16px;
+    border: 1px solid rgba(0, 153, 255, 0.3);
+    overflow: hidden;
+}
+
+.video-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.video-header h3 {
+    color: #00d4ff;
+    margin: 0;
+    font-size: 1.2rem;
+}
+
+.video-controls-header {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.fullscreen-btn,
+.close-video-btn {
+    background: rgba(0, 153, 255, 0.2);
+    border: 1px solid rgba(0, 153, 255, 0.3);
+    color: #e8eef7;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+}
+
+.fullscreen-btn:hover,
+.close-video-btn:hover {
+    background: rgba(0, 153, 255, 0.3);
+    border-color: #0099ff;
+    transform: translateY(-2px);
+}
+
+.video-player-inner {
+    position: relative;
+    width: 100%;
+    background: #000;
+}
+
+.video-player-inner video {
+    width: 100%;
+    height: auto;
+    max-height: 500px;
+    display: block;
+}
+
+.video-player-inner:fullscreen {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.video-player-inner:fullscreen video {
+    max-height: 100vh;
+    max-width: 100vw;
+}
+
+.video-loading,
+.video-error {
+    padding: 3rem;
+    text-align: center;
+    color: #a0b4cc;
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    margin: 0 auto 1rem;
+    border: 4px solid rgba(0, 153, 255, 0.2);
+    border-top: 4px solid #0099ff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.video-error {
+    color: #ff6b6b;
+}
+
+.video-error button {
+    margin-top: 1rem;
+}
+
 @media (max-width: 768px) {
     h1 {
         font-size: 2rem;
