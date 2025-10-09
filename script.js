@@ -779,12 +779,12 @@ function displayVideoPlayer(videoUrl, episodeNumber, episodeTitle) {
     const playerContainer = document.getElementById('videoPlayerContainer');
     if (!playerContainer) return;
 
+    // FULLSCREEN BUTTON REMOVED - Only close button remains
     playerContainer.innerHTML = `
         <div class="video-player-wrapper">
             <div class="video-header">
                 <h3>Episode ${episodeNumber}: ${episodeTitle}</h3>
                 <div class="video-controls-header">
-                    <button onclick="toggleFullscreen()" class="fullscreen-btn" title="Fullscreen">⛶</button>
                     <button onclick="closeVideoPlayer()" class="close-video-btn" title="Close">✕</button>
                 </div>
             </div>
