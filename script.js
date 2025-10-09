@@ -124,7 +124,7 @@ function navigateTo(page) {
     const heroSearch = document.querySelector('.hero .search-container');
     if (heroSearch) {
         if (page === 'home') {
-            heroSearch.style.display = 'block';
+            heroSearch.style.display = 'flex';
         } else {
             heroSearch.style.display = 'none';
         }
