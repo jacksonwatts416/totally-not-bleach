@@ -1,11 +1,11 @@
-// Replace your ENTIRE api-adapter.js file with this
-// Uses Aniwatch API hosted at aniwatch-api-v1-0.onrender.com (FREE community instance)
+// Replace your ENTIRE api-adapter.js file with this DEMO VERSION
+// This uses Jikan for anime info and provides demo video links for testing
 
 class AnimeAPIAdapter {
     constructor() {
         this.jikanBase = 'https://api.jikan.moe/v4';
-        this.aniwatchBase = 'https://aniwatch-api-v1-0.onrender.com/api';
-        this.apiName = 'aniwatch-render';
+        this.apiName = 'demo-mode';
+        console.log('⚠️ Running in DEMO MODE with test videos');
     }
 
     // Build URL with parameters
@@ -56,11 +56,9 @@ class AnimeAPIAdapter {
             // Get total episodes count
             const totalEps = typeof animeInfo.totalEpisodes === 'number' ? animeInfo.totalEpisodes : 12;
 
-            // Try to get episodes from Aniwatch
-            console.log('Attempting to fetch episodes from Aniwatch...');
-            const episodes = await this.getEpisodesFromAniwatch(animeInfo.title, totalEps);
-
-            animeInfo.episodes = episodes;
+            // Generate demo episodes with working video links
+            console.log('Creating demo episodes with test videos...');
+            animeInfo.episodes = this.generateDemoEpisodes(totalEps);
 
             console.log('Final anime info with episodes:', animeInfo);
             console.log(`Total episodes in final object: ${animeInfo.episodes.length}`);
@@ -72,147 +70,53 @@ class AnimeAPIAdapter {
         }
     }
 
-    // Get episodes from Aniwatch API
-    async getEpisodesFromAniwatch(animeTitle, totalEpisodes = 12) {
-        try {
-            console.log('=== FETCHING EPISODES FROM ANIWATCH ===');
-            console.log('Anime title:', animeTitle);
-
-            // Clean up the title
-            const cleanTitle = animeTitle
-                .toLowerCase()
-                .replace(/[^\w\s-]/g, '')
-                .replace(/\s+/g, ' ')
-                .trim();
-
-            console.log('Cleaned title:', cleanTitle);
-
-            // Search using Aniwatch API (page 1)
-            const searchUrl = `${this.aniwatchBase}/search/${encodeURIComponent(cleanTitle)}/1`;
-            console.log('Searching Aniwatch:', searchUrl);
-
-            const searchResponse = await fetch(searchUrl);
-            console.log('Search response status:', searchResponse.status);
-
-            if (!searchResponse.ok) {
-                console.error('Aniwatch search failed:', searchResponse.status);
-                return this.generatePlaceholderEpisodes(totalEpisodes);
-            }
-
-            const searchData = await searchResponse.json();
-            console.log('Search results:', searchData);
-
-            if (!searchData || !searchData.animetX || searchData.animetX.length === 0) {
-                console.log('No results from Aniwatch, using placeholder episodes');
-                return this.generatePlaceholderEpisodes(totalEpisodes);
-            }
-
-            // Get the first result's animeId from the URL
-            const firstResult = searchData.animetX[0];
-            const animeUrl = firstResult.url || '';
-            const animeId = animeUrl.split('/').pop(); // Extract ID from URL
-
-            console.log('Found Aniwatch anime ID:', animeId);
-
-            if (!animeId) {
-                console.log('Could not extract anime ID, using placeholder');
-                return this.generatePlaceholderEpisodes(totalEpisodes);
-            }
-
-            // Get anime info with episodes
-            const infoUrl = `${this.aniwatchBase}/info/${animeId}`;
-            console.log('Getting episodes from:', infoUrl);
-
-            const infoResponse = await fetch(infoUrl);
-            console.log('Info response status:', infoResponse.status);
-
-            if (!infoResponse.ok) {
-                console.error('Aniwatch info failed:', infoResponse.status);
-                return this.generatePlaceholderEpisodes(totalEpisodes);
-            }
-
-            const infoData = await infoResponse.json();
-            console.log('Anime info:', infoData);
-
-            if (!infoData || !infoData.episodesX || infoData.episodesX.length === 0) {
-                console.log('No episodes found, using placeholder');
-                return this.generatePlaceholderEpisodes(totalEpisodes);
-            }
-
-            console.log(`✅ Found ${infoData.episodesX.length} episodes from Aniwatch`);
-
-            // Convert to our format
-            return infoData.episodesX.map(ep => ({
-                id: ep.epId || `ep-${ep.epnumber}`,
-                number: parseInt(ep.epnumber) || 1,
-                title: ep.eptitle || `Episode ${ep.epnumber}`,
-                episodeId: ep.epId
-            }));
-        } catch (error) {
-            console.error('Error getting episodes from Aniwatch:', error);
-            return this.generatePlaceholderEpisodes(totalEpisodes);
-        }
-    }
-
-    // Generate placeholder episodes
-    generatePlaceholderEpisodes(totalEpisodes = 12) {
-        console.log(`Generating ${totalEpisodes} placeholder episodes`);
+    // Generate demo episodes with working test videos
+    generateDemoEpisodes(totalEpisodes = 12) {
+        console.log(`✅ Generating ${totalEpisodes} DEMO episodes with test videos`);
         const episodes = [];
 
         for (let i = 1; i <= totalEpisodes; i++) {
             episodes.push({
-                id: `placeholder-ep-${i}`,
+                id: `demo-ep-${i}`,
                 number: i,
-                title: `Episode ${i}`,
-                episodeId: null
+                title: `Episode ${i} (DEMO)`,
+                episodeId: `demo-ep-${i}`,
+                hasVideo: true // Mark as having a demo video
             });
         }
 
         return episodes;
     }
 
-    // Get streaming links using Aniwatch
+    // Get demo streaming links (uses Big Buck Bunny test video)
     async getEpisodeStreaming(episodeId) {
         try {
-            console.log('=== GETTING STREAMING LINK ===');
+            console.log('=== GETTING DEMO STREAMING LINK ===');
             console.log('Episode ID:', episodeId);
 
-            // If it's a placeholder episode, return error
-            if (!episodeId || episodeId.includes('placeholder')) {
-                console.log('Placeholder episode - no streaming available');
+            if (!episodeId || !episodeId.includes('demo-ep-')) {
+                console.log('Not a demo episode - no streaming available');
                 return [];
             }
 
-            // Get streaming links from Aniwatch
-            const url = `${this.aniwatchBase}/episode/${episodeId}`;
-            console.log('Getting streaming link:', url);
+            // Return demo video sources
+            // Using Big Buck Bunny - a free test video
+            console.log('✅ Returning demo video sources');
 
-            const response = await fetch(url);
-            console.log('Streaming response status:', response.status);
-
-            if (!response.ok) {
-                console.error('Failed to fetch streaming link:', response.status);
-                return [];
-            }
-
-            const data = await response.json();
-            console.log('Streaming data:', data);
-
-            if (!data || !data.sourceX || data.sourceX.length === 0) {
-                console.log('No streaming sources found');
-                return [];
-            }
-
-            console.log(`✅ Found ${data.sourceX.length} streaming sources`);
-
-            // Return sources in our format
-            return data.sourceX.map(source => ({
-                url: source.file,
-                quality: source.label || 'default',
-                type: source.type || 'mp4'
-            }));
+            return [
+                {
+                    url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+                    quality: '720p',
+                    type: 'mp4'
+                },
+                {
+                    url: 'https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_1MB.mp4',
+                    quality: '360p',
+                    type: 'mp4'
+                }
+            ];
         } catch (error) {
-            console.error('Error getting streaming link:', error);
+            console.error('Error getting demo video:', error);
             return [];
         }
     }
@@ -268,7 +172,7 @@ class AnimeAPIAdapter {
             genres: anime.genres?.map(g => g.name) || [],
             releaseDate: anime.year || anime.aired?.from?.substring(0, 4) || 'Unknown',
             status: anime.status || 'Unknown',
-            totalEpisodes: anime.episodes || 'Unknown',
+            totalEpisodes: anime.episodes || 12,
             episodes: [],
             rating: anime.score || null,
             subOrDub: anime.type || null,
@@ -281,5 +185,7 @@ class AnimeAPIAdapter {
 // Create global instance
 if (typeof window !== 'undefined') {
     window.animeAPI = new AnimeAPIAdapter();
-    console.log('✅ Aniwatch API initialized (Render hosted instance)');
+    console.log('🎬 DEMO MODE: Using test videos for playback');
+    console.log('📌 All episodes will play Big Buck Bunny demo video');
+    console.log('💡 Replace api-adapter.js with a working API when available');
 }
