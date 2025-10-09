@@ -250,7 +250,7 @@ h2 {
 }
 
 #watch.page-section {
-    padding: 0.25rem 0.75rem;
+    padding: 0.5in 0.5in;
     max-width: 100%;
 }
 
@@ -426,7 +426,7 @@ h2 {
     gap: 1rem;
     justify-content: flex-start;
     align-items: flex-start;
-    padding-left: 0;
+    padding-left: 0.5in;
 }
 
 .watch-image-container {
@@ -472,7 +472,7 @@ h2 {
 .watch-main-content {
     display: flex;
     flex-direction: column;
-    padding-right: 0;
+    padding-right: 0.5in;
 }
 
 .anime-title-header {
