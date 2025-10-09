@@ -692,7 +692,6 @@ h2 {
     gap: 0.5rem;
 }
 
-.fullscreen-btn,
 .close-video-btn {
     background: rgba(0, 153, 255, 0.2);
     border: 1px solid rgba(0, 153, 255, 0.3);
@@ -704,7 +703,6 @@ h2 {
     font-size: 1rem;
 }
 
-.fullscreen-btn:hover,
 .close-video-btn:hover {
     background: rgba(0, 153, 255, 0.3);
     border-color: #0099ff;
