@@ -412,6 +412,7 @@ h2 {
     gap: 1rem;
     max-width: 1600px;
     margin: 0 auto;
+    min-height: 100vh;
 }
 
 .watch-sidebar {
@@ -561,9 +562,17 @@ h2 {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
-    max-height: calc(100vh - 30px);
-    overflow-y: auto;
+    max-height: none;
+    overflow-y: visible;
     padding-right: 0.5rem;
+    min-height: 100vh;
+}
+
+/* Only add scrollbar on very long anime (50+ episodes) */
+@media (min-height: 900px) {
+    .episodes-container {
+        overflow-y: auto;
+    }
 }
 
 .episodes-container::-webkit-scrollbar {
