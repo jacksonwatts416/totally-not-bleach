@@ -1,11 +1,11 @@
 // Replace your ENTIRE api-adapter.js file with this
-// Uses Consumet API hosted at api.haikei.xyz (FREE community instance)
+// Uses Aniwatch API hosted at aniwatch-api-v1-0.onrender.com (FREE community instance)
 
 class AnimeAPIAdapter {
     constructor() {
         this.jikanBase = 'https://api.jikan.moe/v4';
-        this.consumetBase = 'https://api.haikei.xyz';
-        this.apiName = 'consumet-haikei';
+        this.aniwatchBase = 'https://aniwatch-api-v1-0.onrender.com/api';
+        this.apiName = 'aniwatch-render';
     }
 
     // Build URL with parameters
@@ -56,9 +56,9 @@ class AnimeAPIAdapter {
             // Get total episodes count
             const totalEps = typeof animeInfo.totalEpisodes === 'number' ? animeInfo.totalEpisodes : 12;
 
-            // Try to get episodes from Consumet
-            console.log('Attempting to fetch episodes from Consumet...');
-            const episodes = await this.getEpisodesFromConsumet(animeInfo.title, totalEps);
+            // Try to get episodes from Aniwatch
+            console.log('Attempting to fetch episodes from Aniwatch...');
+            const episodes = await this.getEpisodesFromAniwatch(animeInfo.title, totalEps);
 
             animeInfo.episodes = episodes;
 
@@ -72,76 +72,84 @@ class AnimeAPIAdapter {
         }
     }
 
-    // Get episodes from Consumet API (Haikei instance)
-    async getEpisodesFromConsumet(animeTitle, totalEpisodes = 12) {
+    // Get episodes from Aniwatch API
+    async getEpisodesFromAniwatch(animeTitle, totalEpisodes = 12) {
         try {
-            console.log('=== FETCHING EPISODES FROM CONSUMET ===');
+            console.log('=== FETCHING EPISODES FROM ANIWATCH ===');
             console.log('Anime title:', animeTitle);
 
             // Clean up the title
             const cleanTitle = animeTitle
                 .toLowerCase()
                 .replace(/[^\w\s-]/g, '')
-                .replace(/\s+/g, '-')
+                .replace(/\s+/g, ' ')
                 .trim();
 
             console.log('Cleaned title:', cleanTitle);
 
-            // Search using Consumet GogoAnime provider
-            const searchUrl = `${this.consumetBase}/anime/gogoanime/${encodeURIComponent(animeTitle)}`;
-            console.log('Searching Consumet:', searchUrl);
+            // Search using Aniwatch API (page 1)
+            const searchUrl = `${this.aniwatchBase}/search/${encodeURIComponent(cleanTitle)}/1`;
+            console.log('Searching Aniwatch:', searchUrl);
 
             const searchResponse = await fetch(searchUrl);
             console.log('Search response status:', searchResponse.status);
 
             if (!searchResponse.ok) {
-                console.error('Consumet search failed:', searchResponse.status);
+                console.error('Aniwatch search failed:', searchResponse.status);
                 return this.generatePlaceholderEpisodes(totalEpisodes);
             }
 
             const searchData = await searchResponse.json();
             console.log('Search results:', searchData);
 
-            if (!searchData || !searchData.results || searchData.results.length === 0) {
-                console.log('No results from Consumet, using placeholder episodes');
+            if (!searchData || !searchData.animetX || searchData.animetX.length === 0) {
+                console.log('No results from Aniwatch, using placeholder episodes');
                 return this.generatePlaceholderEpisodes(totalEpisodes);
             }
 
-            // Get the first result's ID
-            const animeId = searchData.results[0].id;
-            console.log('Found Consumet anime ID:', animeId);
+            // Get the first result's animeId from the URL
+            const firstResult = searchData.animetX[0];
+            const animeUrl = firstResult.url || '';
+            const animeId = animeUrl.split('/').pop(); // Extract ID from URL
+
+            console.log('Found Aniwatch anime ID:', animeId);
+
+            if (!animeId) {
+                console.log('Could not extract anime ID, using placeholder');
+                return this.generatePlaceholderEpisodes(totalEpisodes);
+            }
 
             // Get anime info with episodes
-            const infoUrl = `${this.consumetBase}/anime/gogoanime/info/${animeId}`;
+            const infoUrl = `${this.aniwatchBase}/info/${animeId}`;
             console.log('Getting episodes from:', infoUrl);
 
             const infoResponse = await fetch(infoUrl);
             console.log('Info response status:', infoResponse.status);
 
             if (!infoResponse.ok) {
-                console.error('Consumet info failed:', infoResponse.status);
+                console.error('Aniwatch info failed:', infoResponse.status);
                 return this.generatePlaceholderEpisodes(totalEpisodes);
             }
 
             const infoData = await infoResponse.json();
             console.log('Anime info:', infoData);
 
-            if (!infoData || !infoData.episodes || infoData.episodes.length === 0) {
+            if (!infoData || !infoData.episodesX || infoData.episodesX.length === 0) {
                 console.log('No episodes found, using placeholder');
                 return this.generatePlaceholderEpisodes(totalEpisodes);
             }
 
-            console.log(`✅ Found ${infoData.episodes.length} episodes from Consumet`);
+            console.log(`✅ Found ${infoData.episodesX.length} episodes from Aniwatch`);
 
             // Convert to our format
-            return infoData.episodes.map(ep => ({
-                id: ep.id,
-                number: ep.number || 1,
-                title: `Episode ${ep.number}`,
-                episodeId: ep.id
+            return infoData.episodesX.map(ep => ({
+                id: ep.epId || `ep-${ep.epnumber}`,
+                number: parseInt(ep.epnumber) || 1,
+                title: ep.eptitle || `Episode ${ep.epnumber}`,
+                episodeId: ep.epId
             }));
         } catch (error) {
-            console.error('Error getting episodes from Consumet:', error);
+            console.error('Error getting episodes from Aniwatch:', error);
             return this.generatePlaceholderEpisodes(totalEpisodes);
         }
     }
@@ -163,7 +171,7 @@ class AnimeAPIAdapter {
         return episodes;
     }
 
-    // Get streaming links using Consumet
+    // Get streaming links using Aniwatch
     async getEpisodeStreaming(episodeId) {
         try {
             console.log('=== GETTING STREAMING LINK ===');
@@ -175,8 +183,8 @@ class AnimeAPIAdapter {
                 return [];
             }
 
-            // Get streaming links from Consumet
-            const url = `${this.consumetBase}/anime/gogoanime/watch/${episodeId}`;
+            // Get streaming links from Aniwatch
+            const url = `${this.aniwatchBase}/episode/${episodeId}`;
             console.log('Getting streaming link:', url);
 
             const response = await fetch(url);
@@ -190,18 +198,18 @@ class AnimeAPIAdapter {
             const data = await response.json();
             console.log('Streaming data:', data);
 
-            if (!data || !data.sources || data.sources.length === 0) {
+            if (!data || !data.sourceX || data.sourceX.length === 0) {
                 console.log('No streaming sources found');
                 return [];
             }
 
-            console.log(`✅ Found ${data.sources.length} streaming sources`);
+            console.log(`✅ Found ${data.sourceX.length} streaming sources`);
 
             // Return sources in our format
-            return data.sources.map(source => ({
-                url: source.url,
-                quality: source.quality || 'default',
-                isM3U8: source.isM3U8 || false
+            return data.sourceX.map(source => ({
+                url: source.file,
+                quality: source.label || 'default',
+                type: source.type || 'mp4'
             }));
         } catch (error) {
             console.error('Error getting streaming link:', error);
@@ -273,5 +281,5 @@ class AnimeAPIAdapter {
 // Create global instance
 if (typeof window !== 'undefined') {
     window.animeAPI = new AnimeAPIAdapter();
-    console.log('✅ Consumet API initialized (Haikei hosted instance)');
+    console.log('✅ Aniwatch API initialized (Render hosted instance)');
 }
