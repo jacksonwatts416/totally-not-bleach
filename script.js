@@ -129,10 +129,24 @@ function navigateTo(page) {
             heroSearch.style.display = 'none';
         }
     }
+
+    // If navigating to search page and no results yet, show empty search bar
+    if (page === 'search') {
+        const searchResults = document.getElementById('searchResults');
+        if (searchResults && searchResults.innerHTML.includes('empty-message')) {
+            searchResults.innerHTML = `
+                <div style="max-width: 600px; margin: 0 auto 2rem; margin-top: -1rem;">
+                    <input type="text" class="search-box" placeholder="Search anime..." id="searchInputPage" style="width: 100%;">
+                </div>
+                <p class="empty-message">Enter a search term to find anime</p>
+            `;
+            setupSearchBox('searchInputPage', false);
+        }
+    }
 }
 
 // Unified search setup function
-function setupSearchBox(inputId) {
+function setupSearchBox(inputId, shouldNavigate = false) {
     const searchInput = document.getElementById(inputId);
     if (!searchInput) {
         console.log(`Search input with id "${inputId}" not found`);
@@ -151,6 +165,11 @@ function setupSearchBox(inputId) {
             clearTimeout(searchTimeout);
             const query = newInput.value;
             console.log(`Search triggered from ${inputId} with query: ${query}`);
+
+            if (shouldNavigate) {
+                navigateTo('search');
+            }
+
             await performAPISearch(query);
         }
     });
@@ -160,7 +179,7 @@ function setupSearchBox(inputId) {
 
 // Search functionality - setup home search and button
 function setupSearch() {
-    setupSearchBox('searchInput');
+    setupSearchBox('searchInput', true); // true = should navigate to search page
 
     // Setup search button click
     const searchBtn = document.getElementById('searchBtn');
