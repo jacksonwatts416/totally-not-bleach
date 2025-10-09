@@ -1,26 +1,19 @@
-// Replace your ENTIRE api-adapter.js file with this DEMO VERSION
-// This uses Jikan for anime info and provides demo video links for testing
+// Consumet API Adapter - Full Working Implementation
+// Uses GogoAnime provider from Consumet
 
 class AnimeAPIAdapter {
     constructor() {
-        this.jikanBase = 'https://api.jikan.moe/v4';
-        this.apiName = 'demo-mode';
-        console.log('⚠️ Running in DEMO MODE with test videos');
+        // Use the official Consumet API instance
+        this.baseUrl = 'https://api.consumet.org';
+        this.provider = 'gogoanime'; // Using GogoAnime provider
+        this.apiName = 'consumet';
+        console.log('✅ Consumet API initialized');
     }
 
-    // Build URL with parameters
-    buildUrl(base, endpoint, params = {}) {
-        let url = base + endpoint;
-        Object.keys(params).forEach(key => {
-            url = url.replace(`{${key}}`, encodeURIComponent(params[key]));
-        });
-        return url;
-    }
-
-    // Search for anime using Jikan
+    // Search for anime
     async searchAnime(query) {
         try {
-            const url = this.buildUrl(this.jikanBase, '/anime?q={query}', { query });
+            const url = `${this.baseUrl}/anime/${this.provider}/${encodeURIComponent(query)}`;
             console.log('Search URL:', url);
 
             const response = await fetch(url);
@@ -34,10 +27,10 @@ class AnimeAPIAdapter {
         }
     }
 
-    // Get anime details from Jikan
+    // Get anime details and episodes
     async getAnimeInfo(id) {
         try {
-            const url = this.buildUrl(this.jikanBase, '/anime/{id}/full', { id });
+            const url = `${this.baseUrl}/anime/${this.provider}/info/${id}`;
             console.log('Info URL:', url);
 
             const response = await fetch(url);
@@ -50,18 +43,10 @@ class AnimeAPIAdapter {
             const data = await response.json();
             console.log('Raw API response:', data);
 
-            // Get anime info from Jikan
             const animeInfo = this.normalizeAnimeInfo(data);
 
-            // Get total episodes count
-            const totalEps = typeof animeInfo.totalEpisodes === 'number' ? animeInfo.totalEpisodes : 12;
-
-            // Generate demo episodes with working video links
-            console.log('Creating demo episodes with test videos...');
-            animeInfo.episodes = this.generateDemoEpisodes(totalEps);
-
-            console.log('Final anime info with episodes:', animeInfo);
-            console.log(`Total episodes in final object: ${animeInfo.episodes.length}`);
+            console.log('Final anime info:', animeInfo);
+            console.log(`Total episodes: ${animeInfo.episodes.length}`);
 
             return animeInfo;
         } catch (error) {
@@ -70,53 +55,29 @@ class AnimeAPIAdapter {
         }
     }
 
-    // Generate demo episodes with working test videos
-    generateDemoEpisodes(totalEpisodes = 12) {
-        console.log(`✅ Generating ${totalEpisodes} DEMO episodes with test videos`);
-        const episodes = [];
-
-        for (let i = 1; i <= totalEpisodes; i++) {
-            episodes.push({
-                id: `demo-ep-${i}`,
-                number: i,
-                title: `Episode ${i} (DEMO)`,
-                episodeId: `demo-ep-${i}`,
-                hasVideo: true // Mark as having a demo video
-            });
-        }
-
-        return episodes;
-    }
-
-    // Get demo streaming links (uses Big Buck Bunny test video)
+    // Get streaming links for an episode
     async getEpisodeStreaming(episodeId) {
         try {
-            console.log('=== GETTING DEMO STREAMING LINK ===');
-            console.log('Episode ID:', episodeId);
+            const url = `${this.baseUrl}/anime/${this.provider}/watch/${episodeId}`;
+            console.log('Getting streaming link:', url);
 
-            if (!episodeId || !episodeId.includes('demo-ep-')) {
-                console.log('Not a demo episode - no streaming available');
-                return [];
+            const response = await fetch(url);
+            const data = await response.json();
+
+            console.log('Streaming data:', data);
+
+            // Return available sources
+            if (data.sources && data.sources.length > 0) {
+                return data.sources.map(source => ({
+                    url: source.url,
+                    quality: source.quality || 'default',
+                    isM3U8: source.isM3U8 || false
+                }));
             }
 
-            // Return demo video sources
-            // Using Big Buck Bunny - a free test video
-            console.log('✅ Returning demo video sources');
-
-            return [
-                {
-                    url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-                    quality: '720p',
-                    type: 'mp4'
-                },
-                {
-                    url: 'https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_1MB.mp4',
-                    quality: '360p',
-                    type: 'mp4'
-                }
-            ];
+            return [];
         } catch (error) {
-            console.error('Error getting demo video:', error);
+            console.error('Error getting streaming link:', error);
             return [];
         }
     }
@@ -124,7 +85,7 @@ class AnimeAPIAdapter {
     // Get trending anime
     async getTrending() {
         try {
-            const url = this.buildUrl(this.jikanBase, '/top/anime');
+            const url = `${this.baseUrl}/anime/${this.provider}/top-airing`;
             const response = await fetch(url);
             const data = await response.json();
             return this.normalizeSearchResults(data);
@@ -137,7 +98,7 @@ class AnimeAPIAdapter {
     // Get popular anime
     async getPopular() {
         try {
-            const url = this.buildUrl(this.jikanBase, '/top/anime?filter=bypopularity');
+            const url = `${this.baseUrl}/anime/${this.provider}/popular`;
             const response = await fetch(url);
             const data = await response.json();
             return this.normalizeSearchResults(data);
@@ -147,45 +108,65 @@ class AnimeAPIAdapter {
         }
     }
 
-    // Normalize search results
+    // Get recent episodes
+    async getRecentEpisodes() {
+        try {
+            const url = `${this.baseUrl}/anime/${this.provider}/recent-episodes`;
+            const response = await fetch(url);
+            const data = await response.json();
+            return this.normalizeSearchResults(data);
+        } catch (error) {
+            console.error('Recent episodes error:', error);
+            return [];
+        }
+    }
+
+    // Normalize search results from Consumet API
     normalizeSearchResults(data) {
-        const results = data.data || [];
+        const results = data.results || [];
         return results.map(anime => ({
-            id: anime.mal_id,
+            id: anime.id,
             title: anime.title,
-            image: anime.images?.jpg?.image_url,
-            releaseDate: anime.year,
-            genres: anime.genres?.map(g => g.name) || [],
-            rating: anime.score
+            image: anime.image,
+            releaseDate: anime.releaseDate,
+            subOrDub: anime.subOrDub,
+            genres: anime.genres || []
         }));
     }
 
-    // Normalize anime info
+    // Normalize anime info from Consumet API
     normalizeAnimeInfo(data) {
-        const anime = data.data || data;
-
         return {
-            id: anime.mal_id,
-            title: anime.title || anime.title_english || 'Unknown Title',
-            image: anime.images?.jpg?.large_image_url || anime.images?.jpg?.image_url,
-            description: anime.synopsis || 'No description available.',
-            genres: anime.genres?.map(g => g.name) || [],
-            releaseDate: anime.year || anime.aired?.from?.substring(0, 4) || 'Unknown',
-            status: anime.status || 'Unknown',
-            totalEpisodes: anime.episodes || 12,
-            episodes: [],
-            rating: anime.score || null,
-            subOrDub: anime.type || null,
-            studios: anime.studios?.map(s => s.name).join(', ') || 'Unknown',
-            duration: anime.duration || 'Unknown'
+            id: data.id,
+            title: data.title,
+            image: data.image,
+            description: data.description || 'No description available.',
+            genres: data.genres || [],
+            releaseDate: data.releaseDate || 'Unknown',
+            status: data.status || 'Unknown',
+            totalEpisodes: data.totalEpisodes || (data.episodes ? data.episodes.length : 0),
+            episodes: this.normalizeEpisodes(data.episodes || []),
+            subOrDub: data.subOrDub || 'sub',
+            otherName: data.otherName || '',
+            type: data.type || 'TV'
         };
+    }
+
+    // Normalize episodes array
+    normalizeEpisodes(episodes) {
+        return episodes.map(ep => ({
+            id: ep.id,
+            number: ep.number,
+            title: ep.title || `Episode ${ep.number}`,
+            url: ep.url
+        }));
     }
 }
 
 // Create global instance
 if (typeof window !== 'undefined') {
     window.animeAPI = new AnimeAPIAdapter();
-    console.log('🎬 DEMO MODE: Using test videos for playback');
-    console.log('📌 All episodes will play Big Buck Bunny demo video');
-    console.log('💡 Replace api-adapter.js with a working API when available');
+    console.log('🎬 Consumet API Ready!');
+    console.log('📡 Using GogoAnime provider');
+    console.log('🔗 API: https://api.consumet.org');
 }
