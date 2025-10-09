@@ -1,6 +1,7 @@
 // Anime data storage (in-memory for now)
 let animeList = [];
 let searchTimeout = null;
+let currentVideoPlayer = null;
 
 // Background images rotation
 const backgroundImages = [
@@ -695,10 +696,146 @@ function organizeEpisodesIntoSeasons(episodes, totalEpisodes) {
     return seasons;
 }
 
-// Play episode - Enhanced with episode details
+// VIDEO PLAYER FUNCTIONS
 function playEpisode(episodeId, episodeNumber, episodeTitle) {
     console.log('Playing episode:', { episodeId, episodeNumber, episodeTitle });
-    alert(`Episode ${episodeNumber}: ${episodeTitle}\n\nVideo player functionality coming soon!\n\nEpisode ID: ${episodeId}`);
+
+    // Get streaming sources
+    loadEpisodeVideo(episodeId, episodeNumber, episodeTitle);
+}
+
+async function loadEpisodeVideo(episodeId, episodeNumber, episodeTitle) {
+    try {
+        // Show loading state
+        showVideoLoading();
+
+        // Get streaming links from API
+        const streamingData = await window.animeAPI.getEpisodeStreaming(episodeId);
+        console.log('Streaming data:', streamingData);
+
+        if (!streamingData || streamingData.length === 0) {
+            showVideoError('No streaming sources available for this episode.');
+            return;
+        }
+
+        // Find the best quality source
+        const source = streamingData.find(s => s.quality === '1080p') ||
+            streamingData.find(s => s.quality === '720p') ||
+            streamingData[0];
+
+        console.log('Selected source:', source);
+
+        // Display video player
+        displayVideoPlayer(source.url, episodeNumber, episodeTitle);
+
+    } catch (error) {
+        console.error('Error loading video:', error);
+        showVideoError('Failed to load video. Please try again.');
+    }
+}
+
+function showVideoLoading() {
+    const container = document.getElementById('watchContainer');
+    if (!container) return;
+
+    // Create or update video player container
+    let playerContainer = document.getElementById('videoPlayerContainer');
+    if (!playerContainer) {
+        playerContainer = document.createElement('div');
+        playerContainer.id = 'videoPlayerContainer';
+        playerContainer.className = 'video-player-container';
+        container.insertBefore(playerContainer, container.firstChild);
+    }
+
+    playerContainer.innerHTML = `
+        <div class="video-loading">
+            <div class="loading-spinner"></div>
+            <p>Loading video...</p>
+        </div>
+    `;
+
+    // Animate everything down
+    playerContainer.style.maxHeight = '0';
+    playerContainer.style.opacity = '0';
+    setTimeout(() => {
+        playerContainer.style.maxHeight = '600px';
+        playerContainer.style.opacity = '1';
+    }, 10);
+}
+
+function showVideoError(message) {
+    const playerContainer = document.getElementById('videoPlayerContainer');
+    if (!playerContainer) return;
+
+    playerContainer.innerHTML = `
+        <div class="video-error">
+            <p>${message}</p>
+            <button onclick="closeVideoPlayer()" class="close-video-btn">Close</button>
+        </div>
+    `;
+}
+
+function displayVideoPlayer(videoUrl, episodeNumber, episodeTitle) {
+    const playerContainer = document.getElementById('videoPlayerContainer');
+    if (!playerContainer) return;
+
+    playerContainer.innerHTML = `
+        <div class="video-player-wrapper">
+            <div class="video-header">
+                <h3>Episode ${episodeNumber}: ${episodeTitle}</h3>
+                <div class="video-controls-header">
+                    <button onclick="toggleFullscreen()" class="fullscreen-btn" title="Fullscreen">⛶</button>
+                    <button onclick="closeVideoPlayer()" class="close-video-btn" title="Close">✕</button>
+                </div>
+            </div>
+            <div class="video-player-inner" id="videoPlayerInner">
+                <video id="episodeVideo" controls autoplay>
+                    <source src="${videoUrl}" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+        </div>
+    `;
+
+    // Store reference to current video
+    currentVideoPlayer = document.getElementById('episodeVideo');
+
+    // Smooth scroll to video player
+    setTimeout(() => {
+        playerContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+}
+
+function closeVideoPlayer() {
+    const playerContainer = document.getElementById('videoPlayerContainer');
+    if (!playerContainer) return;
+
+    // Pause video if playing
+    if (currentVideoPlayer) {
+        currentVideoPlayer.pause();
+        currentVideoPlayer = null;
+    }
+
+    // Animate out
+    playerContainer.style.maxHeight = '0';
+    playerContainer.style.opacity = '0';
+
+    setTimeout(() => {
+        playerContainer.remove();
+    }, 300);
+}
+
+function toggleFullscreen() {
+    const videoPlayerInner = document.getElementById('videoPlayerInner');
+    if (!videoPlayerInner) return;
+
+    if (!document.fullscreenElement) {
+        videoPlayerInner.requestFullscreen().catch(err => {
+            console.error('Error attempting to enable fullscreen:', err);
+        });
+    } else {
+        document.exitFullscreen();
+    }
 }
 
 // Toggle description expand/collapse
@@ -717,5 +854,8 @@ function toggleDescription() {
     }
 }
 
-// Export toggle function
+// Export video player functions
+window.playEpisode = playEpisode;
+window.closeVideoPlayer = closeVideoPlayer;
+window.toggleFullscreen = toggleFullscreen;
 window.toggleDescription = toggleDescription;
