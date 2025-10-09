@@ -513,6 +513,37 @@ h2 {
     line-height: 1.6;
     font-size: 0.9rem;
     margin-top: 0.5rem;
+    overflow: hidden;
+    position: relative;
+}
+
+.info-description.collapsed {
+    max-height: 11.5em;
+    line-height: 1.45em;
+}
+
+.info-description.collapsed::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 1.5em;
+    background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.05));
+}
+
+.description-toggle {
+    color: #00d4ff;
+    cursor: pointer;
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+    display: inline-block;
+    transition: color 0.3s ease;
+}
+
+.description-toggle:hover {
+    color: #88c5ff;
+    text-decoration: underline;
 }
 
 .watch-episodes {
@@ -530,7 +561,7 @@ h2 {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
-    max-height: calc(100vh - 50px);
+    max-height: calc(100vh - 30px);
     overflow-y: auto;
     padding-right: 0.5rem;
 }
