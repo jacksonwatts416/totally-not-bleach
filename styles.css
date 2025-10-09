@@ -254,8 +254,12 @@ h2 {
 }
 
 #search.page-section h2 {
-    margin-top: 0.25rem;
+    margin-top: 0rem;
     margin-bottom: 0.5rem;
+}
+
+#search .search-container {
+    margin-top: -0.5rem !important;
 }
 
 .container {
