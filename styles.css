@@ -78,6 +78,10 @@ body::after {
     box-shadow: 0 10px 40px rgba(0, 153, 255, 0.2);
 }
 
+.video-player-wrapper video {
+    border-radius: 0 0 14px 14px;
+}
+
 .video-header {
     background: rgba(0, 153, 255, 0.1);
     padding: 1rem 1.5rem;
