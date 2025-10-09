@@ -825,19 +825,6 @@ function closeVideoPlayer() {
     }, 300);
 }
 
-function toggleFullscreen() {
-    const videoPlayerInner = document.getElementById('videoPlayerInner');
-    if (!videoPlayerInner) return;
-
-    if (!document.fullscreenElement) {
-        videoPlayerInner.requestFullscreen().catch(err => {
-            console.error('Error attempting to enable fullscreen:', err);
-        });
-    } else {
-        document.exitFullscreen();
-    }
-}
-
 // Toggle description expand/collapse
 function toggleDescription() {
     const description = document.getElementById('animeDescription');
@@ -857,5 +844,4 @@ function toggleDescription() {
 // Export video player functions
 window.playEpisode = playEpisode;
 window.closeVideoPlayer = closeVideoPlayer;
-window.toggleFullscreen = toggleFullscreen;
 window.toggleDescription = toggleDescription;
