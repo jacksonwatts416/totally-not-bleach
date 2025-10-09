@@ -228,34 +228,30 @@ async function performAPISearch(query) {
     }
 }
 
-// Display search results - Search bar positioned below title
+// Display search results - Just update results, don't touch search bar
 function displaySearchResults(results) {
     const container = document.getElementById('searchResults');
     if (!container) return;
 
+    // Clear only the results
+    container.innerHTML = '';
+
     if (results.length === 0) {
-        container.innerHTML = '<p class="empty-message">No results found.</p>';
+        container.innerHTML = '<p class="empty-message">No anime found. Try a different search!</p>';
         return;
     }
 
-    // Add search bar below the "Search Anime" heading
-    container.innerHTML = `
-        <div class="search-container" style="margin-bottom: 2rem; margin-top: -1rem;">
-            <input type="text" class="search-box" placeholder="Search anime..." id="searchInput">
-        </div>
-        <div id="searchResultsGrid"></div>
-    `;
-
-    const grid = document.getElementById('searchResultsGrid');
+    // Create results grid
+    const grid = document.createElement('div');
+    grid.id = 'searchResultsGrid';
     grid.style.display = 'grid';
     grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(280px, 1fr))';
     grid.style.gap = '2rem';
 
     grid.innerHTML = results.map(anime => createAnimeCard(anime)).join('');
-    addTouchFeedback();
+    container.appendChild(grid);
 
-    // Setup search functionality for the search page
-    setupSearchBox('searchInput');
+    addTouchFeedback();
 
     // Hide hero search bar when on search page
     const heroSearch = document.querySelector('.hero .search-container');
@@ -520,7 +516,7 @@ async function viewAnime(animeId, animeTitle) {
     }
 }
 
-// Display anime details - Enhanced with organized seasons and episode thumbnails
+// Display anime details - Enhanced with organized seasons
 function displayAnimeDetails(anime) {
     const container = document.getElementById('watchContainer');
     if (!container) return;
@@ -647,19 +643,11 @@ function displayAnimeDetails(anime) {
         </div>
     `;
 
-    // Move search bar to bottom of watch page
+    // Hide hero search bar when on watch page
     const heroSearch = document.querySelector('.hero .search-container');
     if (heroSearch) {
         heroSearch.style.display = 'none';
     }
-
-    const searchContainer = document.createElement('div');
-    searchContainer.className = 'search-container';
-    searchContainer.style.marginTop = '3rem';
-    searchContainer.innerHTML = '<input type="text" class="search-box" placeholder="Search for more anime..." id="searchInput">';
-    container.appendChild(searchContainer);
-
-    setupSearchBox('searchInput');
 }
 
 // Organize episodes into seasons (12-13 episodes per season is standard)
