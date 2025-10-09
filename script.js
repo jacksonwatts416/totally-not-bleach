@@ -36,6 +36,9 @@ function initializeApp() {
     loadAnimeList();
     setupResponsiveMenu();
 
+    // Setup the search page search bar
+    setupSearchBox('searchInputPage', false);
+
     const homeLink = document.querySelector('a[href="#home"]');
     if (homeLink) {
         homeLink.classList.add('active');
@@ -127,20 +130,6 @@ function navigateTo(page) {
             heroSearch.style.display = 'flex';
         } else {
             heroSearch.style.display = 'none';
-        }
-    }
-
-    // If navigating to search page and no results yet, show empty search bar
-    if (page === 'search') {
-        const searchResults = document.getElementById('searchResults');
-        if (searchResults && searchResults.innerHTML.includes('empty-message')) {
-            searchResults.innerHTML = `
-                <div style="max-width: 600px; margin: 0 auto 2rem; margin-top: -1rem;">
-                    <input type="text" class="search-box" placeholder="Search anime..." id="searchInputPage" style="width: 100%;">
-                </div>
-                <p class="empty-message">Enter a search term to find anime</p>
-            `;
-            setupSearchBox('searchInputPage', false);
         }
     }
 }
