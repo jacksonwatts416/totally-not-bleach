@@ -134,7 +134,12 @@ function navigateTo(page) {
 // Unified search setup function
 function setupSearchBox(inputId) {
     const searchInput = document.getElementById(inputId);
-    if (!searchInput) return;
+    if (!searchInput) {
+        console.log(`Search input with id "${inputId}" not found`);
+        return;
+    }
+
+    console.log(`Setting up search for input: ${inputId}`);
 
     // Remove any existing event listeners by cloning the element
     const newInput = searchInput.cloneNode(true);
@@ -145,10 +150,12 @@ function setupSearchBox(inputId) {
         if (e.key === 'Enter') {
             clearTimeout(searchTimeout);
             const query = newInput.value;
-            navigateTo('search');
+            console.log(`Search triggered from ${inputId} with query: ${query}`);
             await performAPISearch(query);
         }
     });
+
+    console.log(`Search setup complete for: ${inputId}`);
 }
 
 // Search functionality - setup home search and button
