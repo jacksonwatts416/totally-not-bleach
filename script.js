@@ -36,8 +36,18 @@ function initializeApp() {
     loadAnimeList();
     setupResponsiveMenu();
 
-    // Setup the search page search bar
+    // Setup the search page search bar and button
     setupSearchBox('searchInputPage', false);
+
+    const searchBtnPage = document.getElementById('searchBtnPage');
+    if (searchBtnPage) {
+        searchBtnPage.addEventListener('click', async function () {
+            const searchInputPage = document.getElementById('searchInputPage');
+            if (searchInputPage && searchInputPage.value) {
+                await performAPISearch(searchInputPage.value);
+            }
+        });
+    }
 
     const homeLink = document.querySelector('a[href="#home"]');
     if (homeLink) {
