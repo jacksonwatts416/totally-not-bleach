@@ -187,6 +187,10 @@ h2 {
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    color: #e8eef7;
+    font-size: 1.1rem;
+    font-weight: 300;
+    letter-spacing: 0.05em;
 }
 
 .search-btn:hover {
@@ -198,12 +202,6 @@ h2 {
 
 .search-btn:active {
     transform: translateY(0);
-}
-
-.search-btn img {
-    width: 24px;
-    height: 24px;
-    filter: brightness(0) invert(1);
 }
 
 .features {
