@@ -130,7 +130,8 @@ class AnimeAPIAdapter {
             image: anime.image,
             releaseDate: anime.releaseDate,
             subOrDub: anime.subOrDub,
-            genres: anime.genres || []
+            genres: anime.genres || [],
+            rating: null // Consumet doesn't provide ratings in search
         }));
     }
 
@@ -148,7 +149,8 @@ class AnimeAPIAdapter {
             episodes: this.normalizeEpisodes(data.episodes || []),
             subOrDub: data.subOrDub || 'sub',
             otherName: data.otherName || '',
-            type: data.type || 'TV'
+            type: data.type || 'TV',
+            rating: null // Consumet doesn't provide ratings
         };
     }
 
