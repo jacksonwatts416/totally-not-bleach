@@ -614,7 +614,8 @@ function displayAnimeDetails(anime) {
                     ${anime.description ? `
                     <div class="info-item description-item">
                         <span class="info-label">Description:</span>
-                        <p class="info-description">${anime.description}</p>
+                        <p class="info-description collapsed" id="animeDescription">${anime.description}</p>
+                        <span class="description-toggle" id="descriptionToggle" onclick="toggleDescription()">more</span>
                     </div>
                     ` : ''}
                     
@@ -699,3 +700,22 @@ function playEpisode(episodeId, episodeNumber, episodeTitle) {
     console.log('Playing episode:', { episodeId, episodeNumber, episodeTitle });
     alert(`Episode ${episodeNumber}: ${episodeTitle}\n\nVideo player functionality coming soon!\n\nEpisode ID: ${episodeId}`);
 }
+
+// Toggle description expand/collapse
+function toggleDescription() {
+    const description = document.getElementById('animeDescription');
+    const toggle = document.getElementById('descriptionToggle');
+
+    if (description && toggle) {
+        if (description.classList.contains('collapsed')) {
+            description.classList.remove('collapsed');
+            toggle.textContent = 'less';
+        } else {
+            description.classList.add('collapsed');
+            toggle.textContent = 'more';
+        }
+    }
+}
+
+// Export toggle function
+window.toggleDescription = toggleDescription;
