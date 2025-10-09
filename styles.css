@@ -410,15 +410,17 @@ h2 {
     display: grid;
     grid-template-columns: 350px 1fr;
     gap: 1.5rem;
-    max-width: 2200px;
+    max-width: 95%;
     margin: 0 auto;
-    padding: 0 0.5rem;
+    padding: 0;
 }
 
 .watch-sidebar {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+    justify-content: flex-start;
+    align-items: center;
 }
 
 .watch-image-container {
@@ -426,6 +428,8 @@ h2 {
     border-radius: 16px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     overflow: hidden;
+    width: 100%;
+    max-width: 350px;
 }
 
 .watch-image {
@@ -451,6 +455,8 @@ h2 {
     border-radius: 16px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     padding: 1.5rem;
+    width: 100%;
+    max-width: 350px;
 }
 
 .watch-info h2 {
