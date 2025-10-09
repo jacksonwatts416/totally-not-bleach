@@ -530,7 +530,7 @@ h2 {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
-    max-height: calc(100vh - 60px);
+    max-height: calc(100vh - 50px);
     overflow-y: auto;
     padding-right: 0.5rem;
 }
