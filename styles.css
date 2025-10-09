@@ -246,7 +246,7 @@ h2 {
 .page-section {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 1rem 2rem;
+    padding: 0.5rem 1rem;
 }
 
 #search.page-section {
@@ -408,11 +408,11 @@ h2 {
 
 .watch-layout {
     display: grid;
-    grid-template-columns: 260px 1fr;
-    gap: 1rem;
-    max-width: 1800px;
+    grid-template-columns: 350px 1fr;
+    gap: 1.5rem;
+    max-width: 2200px;
     margin: 0 auto;
-    padding: 0 1rem;
+    padding: 0 0.5rem;
 }
 
 .watch-sidebar {
