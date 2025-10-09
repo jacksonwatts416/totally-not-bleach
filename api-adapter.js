@@ -1,11 +1,11 @@
-// Hybrid API Adapter - Uses Jikan for info + GogoAnime scraper for episodes
-// No self-hosting required!
+// Replace your ENTIRE api-adapter.js file with this
+// Uses AnbuAnime API - FREE and already hosted at anbuanime.onrender.com
 
 class AnimeAPIAdapter {
     constructor() {
         this.jikanBase = 'https://api.jikan.moe/v4';
-        this.gogoBase = 'https://gogoanime.consumet.stream'; // Community-hosted instance
-        this.apiName = 'hybrid';
+        this.anbuBase = 'https://anbuanime.onrender.com';
+        this.apiName = 'anbuanime';
     }
 
     // Build URL with parameters
@@ -53,12 +53,12 @@ class AnimeAPIAdapter {
             // Get anime info from Jikan
             const animeInfo = this.normalizeAnimeInfo(data);
 
-            // Get total episodes count for placeholder generation
+            // Get total episodes count
             const totalEps = typeof animeInfo.totalEpisodes === 'number' ? animeInfo.totalEpisodes : 12;
 
-            // Try to get episodes from GogoAnime (no images)
-            console.log('Attempting to fetch episodes from GogoAnime...');
-            const episodes = await this.getEpisodesFromGogo(animeInfo.title, totalEps);
+            // Try to get episodes from AnbuAnime
+            console.log('Attempting to fetch episodes from AnbuAnime...');
+            const episodes = await this.getEpisodesFromAnbu(animeInfo.title, totalEps);
 
             animeInfo.episodes = episodes;
 
@@ -72,122 +72,81 @@ class AnimeAPIAdapter {
         }
     }
 
-    // Get episode images from Jikan API
-    async getEpisodeImages(animeId, episodes) {
+    // Get episodes from AnbuAnime API
+    async getEpisodesFromAnbu(animeTitle, totalEpisodes = 12) {
         try {
-            // Jikan provides episode data including images
-            const episodeUrl = `${this.jikanBase}/anime/${animeId}/episodes`;
-            console.log('Fetching episode images from:', episodeUrl);
-
-            const response = await fetch(episodeUrl);
-
-            if (!response.ok) {
-                console.log('Could not fetch episode images, episodes will have no images');
-                return episodes.map(ep => ({ ...ep, image: null }));
-            }
-
-            const data = await response.json();
-            const jikanEpisodes = data.data || [];
-
-            console.log(`Found ${jikanEpisodes.length} episodes with metadata from Jikan`);
-            console.log('Sample Jikan episode data:', jikanEpisodes[0]);
-
-            // Check if any episodes have images
-            const episodesWithImages = jikanEpisodes.filter(ep => ep.images?.jpg?.image_url);
-            console.log(`${episodesWithImages.length} episodes have unique images`);
-
-            // Merge episode images with our episode list
-            return episodes.map(ep => {
-                const jikanEp = jikanEpisodes.find(je => je.mal_id === ep.number);
-
-                if (jikanEp) {
-                    const episodeImage = jikanEp.images?.jpg?.image_url || null;
-                    console.log(`Episode ${ep.number}: ${jikanEp.title || 'No title'}, Image: ${episodeImage ? 'Yes' : 'No'}`);
-
-                    return {
-                        ...ep,
-                        title: jikanEp.title || ep.title,
-                        image: episodeImage
-                    };
-                }
-
-                console.log(`Episode ${ep.number}: No Jikan data found`);
-                return { ...ep, image: null };
-            });
-        } catch (error) {
-            console.error('Error fetching episode images:', error);
-            return episodes.map(ep => ({ ...ep, image: null }));
-        }
-    }
-
-    // Get episodes from GogoAnime scraper
-    async getEpisodesFromGogo(animeTitle, totalEpisodes = 12) {
-        try {
-            console.log('=== FETCHING EPISODES ===');
+            console.log('=== FETCHING EPISODES FROM ANBUANIME ===');
             console.log('Anime title:', animeTitle);
 
-            // Clean up the title for better search results
-            const cleanTitle = animeTitle.replace(/[^\w\s]/gi, '').trim();
+            // Clean up the title - remove special characters and extra spaces
+            const cleanTitle = animeTitle
+                .toLowerCase()
+                .replace(/[^\w\s-]/g, '')
+                .replace(/\s+/g, ' ')
+                .trim();
+
             console.log('Cleaned title:', cleanTitle);
 
-            // Search GogoAnime for the anime
-            const searchUrl = `${this.gogoBase}/${encodeURIComponent(cleanTitle)}`;
-            console.log('Searching GogoAnime:', searchUrl);
+            // Search AnbuAnime
+            const searchUrl = `${this.anbuBase}/search?keyw=${encodeURIComponent(cleanTitle)}`;
+            console.log('Searching AnbuAnime:', searchUrl);
 
             const searchResponse = await fetch(searchUrl);
             console.log('Search response status:', searchResponse.status);
 
             if (!searchResponse.ok) {
-                console.error('GogoAnime search failed:', searchResponse.status);
+                console.error('AnbuAnime search failed:', searchResponse.status);
                 return this.generatePlaceholderEpisodes(totalEpisodes);
             }
 
             const searchData = await searchResponse.json();
-            console.log('Search data:', searchData);
+            console.log('Search results:', searchData);
 
-            if (!searchData || !searchData.results || searchData.results.length === 0) {
-                console.log('No results from GogoAnime, using placeholder episodes');
+            if (!searchData || searchData.length === 0) {
+                console.log('No results from AnbuAnime, using placeholder episodes');
                 return this.generatePlaceholderEpisodes(totalEpisodes);
             }
 
-            // Get the first result's ID
-            const gogoId = searchData.results[0].id;
-            console.log('Found GogoAnime ID:', gogoId);
+            // Get the first result's animeId
+            const animeId = searchData[0].animeId;
+            console.log('Found AnbuAnime ID:', animeId);
 
-            // Get episode list
-            const infoUrl = `${this.gogoBase}/info/${gogoId}`;
+            // Get anime details with episodes
+            const infoUrl = `${this.anbuBase}/anime-details/${animeId}`;
             console.log('Getting episodes from:', infoUrl);
 
             const infoResponse = await fetch(infoUrl);
             console.log('Info response status:', infoResponse.status);
 
             if (!infoResponse.ok) {
-                console.error('GogoAnime info failed:', infoResponse.status);
+                console.error('AnbuAnime info failed:', infoResponse.status);
                 return this.generatePlaceholderEpisodes(totalEpisodes);
             }
 
             const infoData = await infoResponse.json();
-            console.log('Info data:', infoData);
+            console.log('Anime details:', infoData);
 
-            if (!infoData || !infoData.episodes || infoData.episodes.length === 0) {
+            if (!infoData || !infoData.episodesList || infoData.episodesList.length === 0) {
                 console.log('No episodes found, using placeholder');
                 return this.generatePlaceholderEpisodes(totalEpisodes);
             }
 
-            console.log(`✅ Found ${infoData.episodes.length} episodes from GogoAnime`);
-            return infoData.episodes.map(ep => ({
-                id: ep.id,
-                number: ep.number,
-                title: `Episode ${ep.number}`,
-                url: ep.url
+            console.log(`✅ Found ${infoData.episodesList.length} episodes from AnbuAnime`);
+
+            // Convert to our format
+            return infoData.episodesList.map(ep => ({
+                id: ep.episodeId,
+                number: parseInt(ep.episodeNum) || 1,
+                title: `Episode ${ep.episodeNum}`,
+                episodeId: ep.episodeId
             }));
         } catch (error) {
-            console.error('Error getting episodes from GogoAnime:', error);
+            console.error('Error getting episodes from AnbuAnime:', error);
             return this.generatePlaceholderEpisodes(totalEpisodes);
         }
     }
 
-    // Generate placeholder episodes based on total episode count
+    // Generate placeholder episodes
     generatePlaceholderEpisodes(totalEpisodes = 12) {
         console.log(`Generating ${totalEpisodes} placeholder episodes`);
         const episodes = [];
@@ -197,23 +156,70 @@ class AnimeAPIAdapter {
                 id: `placeholder-ep-${i}`,
                 number: i,
                 title: `Episode ${i}`,
-                url: null
+                episodeId: null
             });
         }
 
         return episodes;
     }
 
-    // Get streaming links for an episode
+    // Get streaming links for an episode using AnbuAnime
     async getEpisodeStreaming(episodeId) {
         try {
-            const url = `${this.gogoBase}/watch/${episodeId}`;
-            console.log('Getting streaming link:', url);
+            console.log('=== GETTING STREAMING LINK ===');
+            console.log('Episode ID:', episodeId);
 
-            const response = await fetch(url);
-            const data = await response.json();
+            // If it's a placeholder episode, return error
+            if (!episodeId || episodeId.includes('placeholder')) {
+                console.log('Placeholder episode - no streaming available');
+                return [];
+            }
 
-            return data.sources || [];
+            // Try VIDCDN first (most reliable according to AnbuAnime docs)
+            const vidcdnUrl = `${this.anbuBase}/vidcdn/watch/${episodeId}`;
+            console.log('Trying VIDCDN:', vidcdnUrl);
+
+            const vidcdnResponse = await fetch(vidcdnUrl);
+            console.log('VIDCDN response status:', vidcdnResponse.status);
+
+            if (vidcdnResponse.ok) {
+                const data = await vidcdnResponse.json();
+                console.log('VIDCDN streaming data:', data);
+
+                if (data && data.sources && data.sources.length > 0) {
+                    console.log(`✅ Found ${data.sources.length} streaming sources from VIDCDN`);
+                    return data.sources.map(source => ({
+                        url: source.file,
+                        quality: source.label || 'default',
+                        type: source.type || 'mp4'
+                    }));
+                }
+            }
+
+            // Fallback to StreamSB
+            console.log('VIDCDN failed, trying StreamSB...');
+            const streamsbUrl = `${this.anbuBase}/streamsb/watch/${episodeId}`;
+            console.log('Trying StreamSB:', streamsbUrl);
+
+            const streamsbResponse = await fetch(streamsbUrl);
+            console.log('StreamSB response status:', streamsbResponse.status);
+
+            if (streamsbResponse.ok) {
+                const data = await streamsbResponse.json();
+                console.log('StreamSB streaming data:', data);
+
+                if (data && data.sources && data.sources.length > 0) {
+                    console.log(`✅ Found ${data.sources.length} streaming sources from StreamSB`);
+                    return data.sources.map(source => ({
+                        url: source.file,
+                        quality: source.label || 'default',
+                        type: source.type || 'mp4'
+                    }));
+                }
+            }
+
+            console.log('No streaming sources found');
+            return [];
         } catch (error) {
             console.error('Error getting streaming link:', error);
             return [];
@@ -272,7 +278,7 @@ class AnimeAPIAdapter {
             releaseDate: anime.year || anime.aired?.from?.substring(0, 4) || 'Unknown',
             status: anime.status || 'Unknown',
             totalEpisodes: anime.episodes || 'Unknown',
-            episodes: [], // Will be filled by getEpisodesFromGogo
+            episodes: [],
             rating: anime.score || null,
             subOrDub: anime.type || null,
             studios: anime.studios?.map(s => s.name).join(', ') || 'Unknown',
@@ -284,5 +290,5 @@ class AnimeAPIAdapter {
 // Create global instance
 if (typeof window !== 'undefined') {
     window.animeAPI = new AnimeAPIAdapter();
-    console.log('✅ Hybrid Anime API initialized (Jikan + GogoAnime)');
+    console.log('✅ AnbuAnime API initialized (Free Hosted)');
 }
