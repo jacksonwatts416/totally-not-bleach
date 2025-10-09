@@ -685,11 +685,13 @@ h2 {
     color: #00d4ff;
     margin: 0;
     font-size: 1.2rem;
+    flex: 1;
 }
 
 .video-controls-header {
     display: flex;
     gap: 0.5rem;
+    flex-shrink: 0;
 }
 
 .close-video-btn {
