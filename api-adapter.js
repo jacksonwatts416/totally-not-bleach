@@ -5,9 +5,9 @@ class AnimeAPIAdapter {
     constructor() {
         // Local Consumet instance
         this.baseUrl = 'http://localhost:3000';
-        this.provider = '9anime';
-        this.apiName = '9anime';
-        console.log('✅ 9anime API initialized');
+        this.provider = 'gogoanime'; // Using gogoanime - more reliable
+        this.apiName = 'gogoanime';
+        console.log('✅ GogoAnime API initialized');
         console.log('📡 Connecting to local Consumet instance at:', this.baseUrl);
     }
 
@@ -60,21 +60,16 @@ class AnimeAPIAdapter {
         }
     }
 
-    // Get episode streaming links from 9anime
-    async getEpisodeStreaming(episodeId, serverName = 'vidcloud') {
+    // Get episode streaming links from gogoanime
+    async getEpisodeStreaming(episodeId, serverName = 'gogocdn') {
         try {
-            const url = `${this.baseUrl}/anime/${this.provider}/watch?episodeId=${episodeId}&server=${serverName}`;
+            const url = `${this.baseUrl}/anime/${this.provider}/watch/${episodeId}`;
             console.log('Getting streaming link:', url);
 
             const response = await fetch(url);
 
             if (!response.ok) {
                 console.error('Streaming API error:', response.status, response.statusText);
-                // Try alternative server
-                if (serverName === 'vidcloud') {
-                    console.log('Trying alternative server: mycloud');
-                    return this.getEpisodeStreaming(episodeId, 'mycloud');
-                }
                 return [];
             }
 
@@ -178,6 +173,6 @@ class AnimeAPIAdapter {
 // Create global instance
 if (typeof window !== 'undefined') {
     window.animeAPI = new AnimeAPIAdapter();
-    console.log('🎬 9anime API Ready!');
+    console.log('🎬 GogoAnime API Ready!');
     console.log('📡 Connected to local Consumet instance');
 }
