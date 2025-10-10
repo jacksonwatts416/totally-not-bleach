@@ -1,181 +1,122 @@
-// AniList API Adapter with Consumet for streaming
-// AniList has excellent CORS support and comprehensive data
+// Consumet API with 9anime provider (Local Instance)
+// Make sure you have Consumet running locally on port 3000
 
 class AnimeAPIAdapter {
     constructor() {
-        this.anilistUrl = 'https://graphql.anilist.co';
-        this.consumetUrl = 'https://api-consumet-org-kappa.vercel.app'; // Backup instance
-        this.apiName = 'anilist';
-        console.log('✅ AniList API initialized');
+        // Local Consumet instance
+        this.baseUrl = 'http://localhost:3000';
+        this.provider = '9anime';
+        this.apiName = '9anime';
+        console.log('✅ 9anime API initialized');
+        console.log('📡 Connecting to local Consumet instance at:', this.baseUrl);
     }
 
-    // GraphQL query for searching anime
+    // Search anime using 9anime
     async searchAnime(query) {
-        const graphqlQuery = `
-            query ($search: String) {
-                Page(page: 1, perPage: 20) {
-                    media(search: $search, type: ANIME) {
-                        id
-                        title {
-                            romaji
-                            english
-                        }
-                        coverImage {
-                            large
-                            extraLarge
-                        }
-                        startDate {
-                            year
-                        }
-                        genres
-                        averageScore
-                        episodes
-                    }
-                }
-            }
-        `;
-
         try {
-            const response = await fetch(this.anilistUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                },
-                body: JSON.stringify({
-                    query: graphqlQuery,
-                    variables: { search: query }
-                })
-            });
+            const url = `${this.baseUrl}/anime/${this.provider}/${encodeURIComponent(query)}`;
+            console.log('Search URL:', url);
 
+            const response = await fetch(url);
             const data = await response.json();
             console.log('Search response:', data);
 
-            if (data.data && data.data.Page && data.data.Page.media) {
-                return this.normalizeSearchResults(data.data.Page.media);
+            if (data.results) {
+                return this.normalizeSearchResults(data.results);
             }
 
             return [];
         } catch (error) {
             console.error('Search error:', error);
+            console.error('⚠️ Make sure Consumet is running: npm start');
             return [];
         }
     }
 
-    // GraphQL query for anime details
+    // Get anime info from 9anime
     async getAnimeInfo(id) {
-        const graphqlQuery = `
-            query ($id: Int) {
-                Media(id: $id, type: ANIME) {
-                    id
-                    title {
-                        romaji
-                        english
-                        native
-                    }
-                    coverImage {
-                        large
-                        extraLarge
-                    }
-                    bannerImage
-                    description
-                    genres
-                    startDate {
-                        year
-                        month
-                        day
-                    }
-                    status
-                    episodes
-                    duration
-                    averageScore
-                    studios {
-                        nodes {
-                            name
-                        }
-                    }
-                    format
-                }
-            }
-        `;
-
         try {
-            const response = await fetch(this.anilistUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                },
-                body: JSON.stringify({
-                    query: graphqlQuery,
-                    variables: { id: parseInt(id) }
-                })
-            });
+            const url = `${this.baseUrl}/anime/${this.provider}/info?id=${id}`;
+            console.log('Info URL:', url);
+
+            const response = await fetch(url);
+
+            if (!response.ok) {
+                console.error('API returned error:', response.status, response.statusText);
+                return null;
+            }
 
             const data = await response.json();
             console.log('Raw API response:', data);
 
-            if (data.data && data.data.Media) {
-                const animeInfo = this.normalizeAnimeInfo(data.data.Media);
-                console.log('Final anime info:', animeInfo);
-                console.log(`Total episodes: ${animeInfo.episodes.length}`);
-                return animeInfo;
-            }
+            const animeInfo = this.normalizeAnimeInfo(data);
+            console.log('Final anime info:', animeInfo);
+            console.log(`Total episodes: ${animeInfo.episodes.length}`);
 
-            return null;
+            return animeInfo;
         } catch (error) {
             console.error('Info error:', error);
             return null;
         }
     }
 
-    // Get streaming links (placeholder for now)
-    async getEpisodeStreaming(episodeId) {
-        console.log('Episode streaming not yet implemented');
-        return [];
+    // Get episode streaming links from 9anime
+    async getEpisodeStreaming(episodeId, serverName = 'vidcloud') {
+        try {
+            const url = `${this.baseUrl}/anime/${this.provider}/watch?episodeId=${episodeId}&server=${serverName}`;
+            console.log('Getting streaming link:', url);
+
+            const response = await fetch(url);
+
+            if (!response.ok) {
+                console.error('Streaming API error:', response.status, response.statusText);
+                // Try alternative server
+                if (serverName === 'vidcloud') {
+                    console.log('Trying alternative server: mycloud');
+                    return this.getEpisodeStreaming(episodeId, 'mycloud');
+                }
+                return [];
+            }
+
+            const data = await response.json();
+            console.log('Streaming data:', data);
+
+            if (data.sources && data.sources.length > 0) {
+                return data.sources.map(source => ({
+                    url: source.url,
+                    quality: source.quality || 'default',
+                    isM3U8: source.isM3U8 || false
+                }));
+            }
+
+            return [];
+        } catch (error) {
+            console.error('Error getting streaming link:', error);
+            return [];
+        }
+    }
+
+    // Get available servers for an episode
+    async getEpisodeServers(episodeId) {
+        try {
+            const url = `${this.baseUrl}/anime/${this.provider}/servers?episodeId=${episodeId}`;
+            console.log('Getting servers:', url);
+
+            const response = await fetch(url);
+            const data = await response.json();
+
+            console.log('Available servers:', data);
+            return data;
+        } catch (error) {
+            console.error('Error getting servers:', error);
+            return [];
+        }
     }
 
     // Get trending anime
     async getTrending() {
-        const graphqlQuery = `
-            query {
-                Page(page: 1, perPage: 20) {
-                    media(sort: TRENDING_DESC, type: ANIME) {
-                        id
-                        title {
-                            romaji
-                            english
-                        }
-                        coverImage {
-                            large
-                            extraLarge
-                        }
-                        startDate {
-                            year
-                        }
-                        genres
-                        averageScore
-                        episodes
-                    }
-                }
-            }
-        `;
-
         try {
-            const response = await fetch(this.anilistUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                },
-                body: JSON.stringify({ query: graphqlQuery })
-            });
-
-            const data = await response.json();
-            if (data.data && data.data.Page && data.data.Page.media) {
-                return this.normalizeSearchResults(data.data.Page.media);
-            }
-            return [];
+            return await this.searchAnime('popular');
         } catch (error) {
             console.error('Trending error:', error);
             return [];
@@ -184,45 +125,8 @@ class AnimeAPIAdapter {
 
     // Get popular anime
     async getPopular() {
-        const graphqlQuery = `
-            query {
-                Page(page: 1, perPage: 20) {
-                    media(sort: POPULARITY_DESC, type: ANIME) {
-                        id
-                        title {
-                            romaji
-                            english
-                        }
-                        coverImage {
-                            large
-                            extraLarge
-                        }
-                        startDate {
-                            year
-                        }
-                        genres
-                        averageScore
-                        episodes
-                    }
-                }
-            }
-        `;
-
         try {
-            const response = await fetch(this.anilistUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                },
-                body: JSON.stringify({ query: graphqlQuery })
-            });
-
-            const data = await response.json();
-            if (data.data && data.data.Page && data.data.Page.media) {
-                return this.normalizeSearchResults(data.data.Page.media);
-            }
-            return [];
+            return await this.searchAnime('trending');
         } catch (error) {
             console.error('Popular error:', error);
             return [];
@@ -230,61 +134,50 @@ class AnimeAPIAdapter {
     }
 
     // Normalize search results
-    normalizeSearchResults(media) {
-        return media.map(anime => ({
+    normalizeSearchResults(results) {
+        return results.map(anime => ({
             id: anime.id,
-            title: anime.title.english || anime.title.romaji,
-            image: anime.coverImage.extraLarge || anime.coverImage.large,
-            releaseDate: anime.startDate?.year || 'Unknown',
+            title: anime.title,
+            image: anime.image,
+            releaseDate: anime.releaseDate || 'Unknown',
             genres: anime.genres || [],
-            rating: anime.averageScore ? anime.averageScore / 10 : null,
+            rating: null,
             status: 'Available'
         }));
     }
 
     // Normalize anime info
     normalizeAnimeInfo(anime) {
-        // Generate placeholder episodes
-        const totalEps = anime.episodes || 12;
-        const episodes = [];
-        for (let i = 1; i <= totalEps; i++) {
-            episodes.push({
-                id: `ep-${anime.id}-${i}`,
-                number: i,
-                title: `Episode ${i}`,
-                url: null
-            });
-        }
+        // Extract episodes from the API response
+        const episodes = anime.episodes?.map(ep => ({
+            id: ep.id,
+            number: ep.number,
+            title: ep.title || `Episode ${ep.number}`,
+            url: ep.url
+        })) || [];
 
         return {
             id: anime.id,
-            title: anime.title.english || anime.title.romaji,
-            image: anime.coverImage.extraLarge || anime.coverImage.large,
-            description: this.cleanDescription(anime.description) || 'No description available.',
+            title: anime.title,
+            image: anime.image,
+            description: anime.description || 'No description available.',
             genres: anime.genres || [],
-            releaseDate: anime.startDate?.year || 'Unknown',
+            releaseDate: anime.releaseDate || 'Unknown',
             status: anime.status || 'Unknown',
-            totalEpisodes: anime.episodes || 'Unknown',
+            totalEpisodes: anime.totalEpisodes || episodes.length,
             episodes: episodes,
-            rating: anime.averageScore ? anime.averageScore / 10 : null,
-            subOrDub: anime.format || 'TV',
-            studios: anime.studios?.nodes?.map(s => s.name).join(', ') || 'Unknown',
-            duration: anime.duration ? `${anime.duration} min` : 'Unknown'
+            rating: anime.rating || null,
+            subOrDub: anime.subOrDub || 'sub',
+            studios: anime.studios || 'Unknown',
+            duration: anime.duration || 'Unknown',
+            type: anime.type || 'TV'
         };
-    }
-
-    // Clean HTML from description
-    cleanDescription(html) {
-        if (!html) return '';
-        const div = document.createElement('div');
-        div.innerHTML = html;
-        return div.textContent || div.innerText || '';
     }
 }
 
 // Create global instance
 if (typeof window !== 'undefined') {
     window.animeAPI = new AnimeAPIAdapter();
-    console.log('🎬 AniList API Ready!');
-    console.log('📡 GraphQL endpoint: https://graphql.anilist.co');
+    console.log('🎬 9anime API Ready!');
+    console.log('📡 Connected to local Consumet instance');
 }
