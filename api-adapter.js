@@ -3,8 +3,8 @@
 
 class AnimeAPIAdapter {
     constructor() {
-        // Local Consumet instance
-        this.baseUrl = 'http://localhost:3000';
+        // Local Consumet instance - using 127.0.0.1 instead of localhost
+        this.baseUrl = 'http://127.0.0.1:3000';
         this.provider = 'gogoanime'; // Using gogoanime - more reliable
         this.apiName = 'gogoanime';
         console.log('✅ GogoAnime API initialized');
