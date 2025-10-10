@@ -3,11 +3,18 @@
 
 class AnimeAPIAdapter {
     constructor() {
-        // Use the official Consumet API instance
-        this.baseUrl = 'https://api.consumet.org';
-        this.provider = 'gogoanime'; // Using GogoAnime provider
+        // Alternative Consumet instances with CORS enabled
+        // Try these in order if one doesn't work:
+        this.instances = [
+            'https://api-consumet-org-phi.vercel.app',
+            'https://consumet-api-peach.vercel.app',
+            'https://consumet-jade.vercel.app'
+        ];
+        this.baseUrl = this.instances[0];
+        this.provider = 'gogoanime';
         this.apiName = 'consumet';
         console.log('✅ Consumet API initialized');
+        console.log('📡 Using instance:', this.baseUrl);
     }
 
     // Search for anime
