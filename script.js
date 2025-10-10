@@ -1,7 +1,6 @@
 // Anime data storage (in-memory for now)
 let animeList = [];
 let searchTimeout = null;
-let currentVideoPlayer = null;
 
 // Background images rotation
 const backgroundImages = [
@@ -461,18 +460,6 @@ window.addEventListener('resize', function () {
     }, 250);
 });
 
-// Export functions
-window.addAnime = addAnime;
-window.removeAnime = removeAnime;
-window.updateAnimeStatus = updateAnimeStatus;
-window.updateAnimeRating = updateAnimeRating;
-window.filterByStatus = filterByStatus;
-window.sortByRating = sortByRating;
-window.sortByTitle = sortByTitle;
-window.showAllAnime = showAllAnime;
-window.editAnime = editAnime;
-window.viewAnime = viewAnime;
-
 // View anime details and episodes - Enhanced API data fetching with debugging
 async function viewAnime(animeId, animeTitle) {
     console.log('=== VIEW ANIME CALLED ===');
@@ -696,133 +683,81 @@ function organizeEpisodesIntoSeasons(episodes, totalEpisodes) {
     return seasons;
 }
 
-// VIDEO PLAYER FUNCTIONS
-function playEpisode(episodeId, episodeNumber, episodeTitle) {
+// Play episode - Enhanced with actual video player
+async function playEpisode(episodeId, episodeNumber, episodeTitle) {
     console.log('Playing episode:', { episodeId, episodeNumber, episodeTitle });
 
-    // Get streaming sources
-    loadEpisodeVideo(episodeId, episodeNumber, episodeTitle);
-}
+    const watchContainer = document.getElementById('watchContainer');
+    if (!watchContainer) return;
 
-async function loadEpisodeVideo(episodeId, episodeNumber, episodeTitle) {
+    // Show loading state
+    const videoPlayerHTML = `
+        <div class="video-player-section">
+            <h2 style="color: #00d4ff; margin-bottom: 1rem;">Now Playing: ${episodeTitle}</h2>
+            <div class="video-container" style="position: relative; padding-bottom: 56.25%; height: 0; background: #000; border-radius: 12px; overflow: hidden;">
+                <div class="loading" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                    Loading video...
+                </div>
+            </div>
+            <button onclick="closeVideoPlayer()" style="margin-top: 1rem; padding: 0.75rem 1.5rem; background: rgba(255, 0, 0, 0.2); color: #ff6b6b; border: none; border-radius: 8px; cursor: pointer;">Close Player</button>
+        </div>
+    `;
+
+    // Insert video player at the top
+    watchContainer.insertAdjacentHTML('afterbegin', videoPlayerHTML);
+
     try {
-        // Show loading state
-        showVideoLoading();
+        // Try to get streaming links
+        console.log('Fetching streaming links for:', episodeId);
+        const sources = await window.animeAPI.getEpisodeStreaming(episodeId);
 
-        // Get streaming links from API
-        const streamingData = await window.animeAPI.getEpisodeStreaming(episodeId);
-        console.log('Streaming data:', streamingData);
+        console.log('Streaming sources:', sources);
 
-        if (!streamingData || streamingData.length === 0) {
-            showVideoError('No streaming sources available for this episode.');
-            return;
+        if (sources && sources.length > 0) {
+            // Use the first available source
+            const source = sources[0];
+
+            const videoContainer = document.querySelector('.video-container');
+            videoContainer.innerHTML = `
+                <video 
+                    controls 
+                    autoplay
+                    style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"
+                    src="${source.url}"
+                >
+                    Your browser does not support video playback.
+                </video>
+            `;
+        } else {
+            // No streaming sources available
+            const videoContainer = document.querySelector('.video-container');
+            videoContainer.innerHTML = `
+                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; color: #ff6b6b;">
+                    <p>No streaming sources available for this episode.</p>
+                    <p style="margin-top: 1rem; font-size: 0.9rem; color: #a0b4cc;">This might be due to API limitations or regional restrictions.</p>
+                </div>
+            `;
         }
-
-        // Find the best quality source
-        const source = streamingData.find(s => s.quality === '1080p') ||
-            streamingData.find(s => s.quality === '720p') ||
-            streamingData[0];
-
-        console.log('Selected source:', source);
-
-        // Display video player
-        displayVideoPlayer(source.url, episodeNumber, episodeTitle);
-
     } catch (error) {
         console.error('Error loading video:', error);
-        showVideoError('Failed to load video. Please try again.');
+        const videoContainer = document.querySelector('.video-container');
+        if (videoContainer) {
+            videoContainer.innerHTML = `
+                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; color: #ff6b6b;">
+                    <p>Failed to load video.</p>
+                    <p style="margin-top: 1rem; font-size: 0.9rem; color: #a0b4cc;">Error: ${error.message}</p>
+                </div>
+            `;
+        }
     }
 }
 
-function showVideoLoading() {
-    const container = document.getElementById('watchContainer');
-    if (!container) return;
-
-    // Create or update video player container
-    let playerContainer = document.getElementById('videoPlayerContainer');
-    if (!playerContainer) {
-        playerContainer = document.createElement('div');
-        playerContainer.id = 'videoPlayerContainer';
-        playerContainer.className = 'video-player-container';
-        container.insertBefore(playerContainer, container.firstChild);
-    }
-
-    playerContainer.innerHTML = `
-        <div class="video-loading">
-            <div class="loading-spinner"></div>
-            <p>Loading video...</p>
-        </div>
-    `;
-
-    // Animate slide down
-    playerContainer.style.maxHeight = '0';
-    playerContainer.style.opacity = '0';
-    playerContainer.style.transform = 'translateY(-20px)';
-    setTimeout(() => {
-        playerContainer.style.maxHeight = '700px';
-        playerContainer.style.opacity = '1';
-        playerContainer.style.transform = 'translateY(0)';
-    }, 10);
-}
-
-function showVideoError(message) {
-    const playerContainer = document.getElementById('videoPlayerContainer');
-    if (!playerContainer) return;
-
-    playerContainer.innerHTML = `
-        <div class="video-error">
-            <p>${message}</p>
-            <button onclick="closeVideoPlayer()" class="close-video-btn">Close</button>
-        </div>
-    `;
-}
-
-function displayVideoPlayer(videoUrl, episodeNumber, episodeTitle) {
-    const playerContainer = document.getElementById('videoPlayerContainer');
-    if (!playerContainer) return;
-
-    playerContainer.innerHTML = `
-        <div class="video-player-wrapper">
-            <div class="video-header">
-                <h3>Episode ${episodeNumber}: ${episodeTitle}</h3>
-                <button onclick="closeVideoPlayer()" class="close-video-btn" title="Close">✕</button>
-            </div>
-            <div class="video-player-inner">
-                <video id="episodeVideo" controls autoplay>
-                    <source src="${videoUrl}" type="video/mp4">
-                    Your browser does not support the video tag.
-                </video>
-            </div>
-        </div>
-    `;
-
-    // Store reference to current video
-    currentVideoPlayer = document.getElementById('episodeVideo');
-
-    // Smooth scroll to video player
-    setTimeout(() => {
-        playerContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 100);
-}
-
+// Close video player
 function closeVideoPlayer() {
-    const playerContainer = document.getElementById('videoPlayerContainer');
-    if (!playerContainer) return;
-
-    // Pause video if playing
-    if (currentVideoPlayer) {
-        currentVideoPlayer.pause();
-        currentVideoPlayer = null;
+    const videoSection = document.querySelector('.video-player-section');
+    if (videoSection) {
+        videoSection.remove();
     }
-
-    // Animate out
-    playerContainer.style.maxHeight = '0';
-    playerContainer.style.opacity = '0';
-    playerContainer.style.transform = 'translateY(-20px)';
-
-    setTimeout(() => {
-        playerContainer.remove();
-    }, 300);
 }
 
 // Toggle description expand/collapse
@@ -841,7 +776,17 @@ function toggleDescription() {
     }
 }
 
-// Export video player functions
+// Export functions
+window.addAnime = addAnime;
+window.removeAnime = removeAnime;
+window.updateAnimeStatus = updateAnimeStatus;
+window.updateAnimeRating = updateAnimeRating;
+window.filterByStatus = filterByStatus;
+window.sortByRating = sortByRating;
+window.sortByTitle = sortByTitle;
+window.showAllAnime = showAllAnime;
+window.editAnime = editAnime;
+window.viewAnime = viewAnime;
 window.playEpisode = playEpisode;
 window.closeVideoPlayer = closeVideoPlayer;
 window.toggleDescription = toggleDescription;
